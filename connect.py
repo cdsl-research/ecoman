@@ -32,13 +32,33 @@ def _bind_uniq_vmid(vmlist, hostname):
     return {hostname+vm['id']: vm for vm in vmlist}
 
 
-def esxi():
+def _get_esxi_hosts():
     import yaml
     with open("hosts.yaml") as f:
-        hosts = yaml.safe_load(f.read())
+        return yaml.safe_load(f.read())
 
+
+def set_vm_power(state, my_vmid):
+    assert state in ('on', 'off'), "Power state is not in ('on', 'off')"
+    esxi_hostname, vmid = my_vmid.split('|')
+    # get esxi hosts
+    esxi_hosts = _get_esxi_hosts()
+    # connect target esxi host
+    host = esxi_hosts.get(esxi_hostname)
+    client.connect(
+        hostname=host.get('hostname'),
+        username=host.get('username'),
+        password=host.get('password')
+    )
+    stdin, stdout, stderr = client.exec_command(f'vim-cmd vmsvc/power.{state} {vmid}')
+    # client.close()
+    return stdout
+
+
+def init_vm():
+    esxi_hosts = _get_esxi_hosts()
     vm_formated_info = {}
-    for host,param in hosts.items():
+    for host,param in esxi_hosts.items():
         client.connect(
             hostname=param.get('hostname'),
             username=param.get('username'),

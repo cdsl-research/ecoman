@@ -1,7 +1,7 @@
 from flask import Flask, request, jsonify, render_template
 import os
 import json
-from connect import esxi
+import connect
 
 
 app = Flask(__name__)
@@ -10,7 +10,12 @@ app.config['JSON_AS_ASCII'] = False  # JSONでの日本語文字化け対策
 
 @app.route('/', methods=['GET'])
 def index():
-    return render_template('main.tpl', machines=esxi().values())
+    return render_template('main.tpl', machines=connect.init_vm().values())
+
+
+@app.route('/power/<string:my_vmid>/<string:state>', methods=['GET'])
+def power(my_vmid, state):
+    return ''.join(connect.set_vm_power(state, my_vmid))
 
 
 if __name__ == '__main__':
