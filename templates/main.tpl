@@ -9,6 +9,7 @@
   <table border=1>
     <thead>
       <tr>
+        <th>Power</th>
         <th>Physical Host</th>
         <th>ID</th>
         <th>Name</th>
@@ -22,6 +23,7 @@
     <tbody>
     {% for machine in machines %}
       <tr>
+        <td>{{ machine.power }}</td>
         <td>{{ machine.physical_host }}</td>
         <td>{{ machine.id }}</td>
         <td>{{ machine.name }}</td>

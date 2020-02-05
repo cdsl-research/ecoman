@@ -29,7 +29,7 @@ def _get_vm_list(hostname):
 
 
 def _bind_uniq_vmid(vmlist, hostname):
-    return {hostname+vm['id']: vm for vm in vmlist}
+    return {hostname+'|'+vm['id']: vm for vm in vmlist}
 
 
 def _get_esxi_hosts():
@@ -51,9 +51,34 @@ def set_vm_power(state, my_vmid):
         password=host.get('password')
     )
     stdin, stdout, stderr = client.exec_command(f'vim-cmd vmsvc/power.{state} {vmid}')
-    # client.close()
+    client.close()
     return stdout
 
+
+def _get_vm_power(my_vmid):
+    esxi_hostname, vmid = my_vmid.split('|')
+    # get esxi hosts
+    esxi_hosts = _get_esxi_hosts()
+    # connect target esxi host
+    host = esxi_hosts.get(esxi_hostname)
+    client.connect(
+        hostname=host.get('hostname'),
+        username=host.get('username'),
+        password=host.get('password')
+    )
+    stdin, stdout, stderr = client.exec_command(f'vim-cmd vmsvc/power.getstate {vmid}')
+    result = stdout.readlines()
+
+    # client.close()
+    if 'Suspended\n' in result:
+        return 'suspend'
+    elif 'Powered on\n' in result:
+        return 'on'
+    elif 'Powered off\n' in result:
+        return 'off'
+    else:
+        return 'unknown'
+    
 
 def init_vm():
     esxi_hosts = _get_esxi_hosts()
@@ -64,8 +89,12 @@ def init_vm():
             username=param.get('username'),
             password=param.get('password')
         )
-        tmp = _get_vm_list(host)
-        vm_formated_info.update(_bind_uniq_vmid(tmp, host))
+        vmlst = _get_vm_list(host)
+        vmdct_format = _bind_uniq_vmid(vmlst, host)
+        for my_vmid,vm_info in vmdct_format.items():
+            vm_info['power'] = _get_vm_power(my_vmid)
+        
+        vm_formated_info.update(vmdct_format)
         client.close()
     
     return vm_formated_info
