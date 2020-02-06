@@ -101,7 +101,7 @@ def init_vm():
 
 
 def main():
-    result = esxi()
+    result = init_vm()
     for r,s in result.items():
         print(r, s)
 
