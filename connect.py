@@ -7,6 +7,21 @@ client = paramiko.SSHClient()
 client.load_system_host_keys()
 
 
+""" 個別VMの詳細を取得 """
+def get_vm_detail(uniq_id):
+    hostname,vmid = uniq_id.split('|')
+    hostinfo = _get_esxi_hosts().get(hostname)
+    if hostinfo is None:
+        return "error"
+    client.connect(
+        hostname=hostinfo.get('addr'),
+        username=hostinfo.get('username'),
+        password=hostinfo.get('password')
+    )
+    stdin, stdout, stderr = client.exec_command(f'vim-cmd vmsvc/get.summary {vmid}')
+    # client.close()
+    return stdout.read().decode('ascii').replace('\n', '\n')
+
 """ VMのリストを取得 """
 def get_vms_list():
     # VM情報一覧の2行目～を取得(ラベルを除外)
@@ -52,7 +67,7 @@ def get_vms_power():
 
     return result
 
-
+""" ESXi一覧をファイルから取得 """
 def _get_esxi_hosts():
     import yaml
     with open("hosts.yaml") as f:

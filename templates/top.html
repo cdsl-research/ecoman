@@ -1,5 +1,4 @@
-{% include "header.tpl" %}
-  <h1>VM Manager</h1>
+{% include "_header.html" %}
   <table border=1>
     <thead>
       <tr>
@@ -17,13 +16,7 @@
     <tbody>
     {% for machine in machines %}
       <tr>
-        {% if machine.power == 'on' %}
-        <td>● ON</td>
-        {% elif machine.power == 'off' %}
-        <td>◯ OFF</td>
-        {% else %}
-        <td>{{ machine.power }}</td>
-        {% endif %}
+        <td><a href="/power/{{machine.uniq_id}}">{{ machine.power }}</a></td>
         <td>{{ machine.physical_host }}</td>
         <td>{{ machine.id }}</td>
         <td>{{ machine.name }}</td>
@@ -36,4 +29,4 @@
     {% endfor %}
     </tbody>
   <table>
-{% include "footer.tpl" %}
+{% include "_footer.html" %}

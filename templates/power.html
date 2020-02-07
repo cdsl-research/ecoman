@@ -1,0 +1,8 @@
+{% include "_header.html" %}
+    <ul id="navigation">
+    {% for item in navigation %}
+        <li><a href="{{ item.href }}">{{ item.caption }}</a></li>
+    {% endfor %}
+    </ul>
+    <pre> {{ detail }} </pre>
+{% include "_footer.html" %}
