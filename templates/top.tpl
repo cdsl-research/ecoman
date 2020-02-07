@@ -1,10 +1,4 @@
-<!doctype html>
-<html>
-<head>
-  <meta charset='utf-8'>
-  <title>kushiyaki</title>
-</head>
-<body>
+{% include "header.tpl" %}
   <h1>VM Manager</h1>
   <table border=1>
     <thead>
@@ -23,7 +17,13 @@
     <tbody>
     {% for machine in machines %}
       <tr>
+        {% if machine.power == 'on' %}
+        <td>● ON</td>
+        {% elif machine.power == 'off' %}
+        <td>◯ OFF</td>
+        {% else %}
         <td>{{ machine.power }}</td>
+        {% endif %}
         <td>{{ machine.physical_host }}</td>
         <td>{{ machine.id }}</td>
         <td>{{ machine.name }}</td>
@@ -36,5 +36,4 @@
     {% endfor %}
     </tbody>
   <table>
-</body>
-</html>
+{% include "footer.tpl" %}
