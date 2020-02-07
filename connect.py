@@ -47,15 +47,14 @@ def get_vms_power():
     stdin, stdout, stderr = client.exec_command("""
     for id in `vim-cmd vmsvc/getallvms | sed '/^Vmid.*$/d' | awk '{print $1}'`
     do
-      echo -n $id/
-      vim-cmd vmsvc/power.getstate $id | grep -v Retrieved
+      vim-cmd vmsvc/power.getstate $id | grep -v Retrieved | sed "s/^/$id|/g" &
     done
     """)
 
     # VMの電源一覧を整形
     result = {}
     for line in stdout.readlines():
-        vmid, state = line.split('/')
+        vmid, state = line.split('|')
         if 'Suspended' in state:
             result[vmid] = 'suspend'
         elif 'Powered on' in state:
