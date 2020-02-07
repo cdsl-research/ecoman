@@ -10,7 +10,7 @@ app.config['JSON_AS_ASCII'] = False  # JSONでの日本語文字化け対策
 
 @app.route('/', methods=['GET'])
 def index():
-    return render_template('main.tpl', machines=connect.init_vm().values())
+    return render_template('top.tpl', machines=connect.app_top())
 
 
 @app.route('/power/<string:my_vmid>/<string:state>', methods=['GET'])
