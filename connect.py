@@ -6,7 +6,6 @@ import asyncio
 client = paramiko.SSHClient()
 client.load_system_host_keys()
 
-machines = []
 
 """ VMのリストを取得 """
 def get_vms_list():
@@ -77,27 +76,34 @@ def _get_esxi_hosts():
 #     return stdout
 
 
-def init_vm():
+def app_top():
     vm_formated_info = []
-    for host,param in _get_esxi_hosts().items():
+    for hostname,param in _get_esxi_hosts().items():
         # VMにSSH接続
         client.connect(
-            hostname=param.get('hostname'),
+            hostname=param.get('addr'),
             username=param.get('username'),
             password=param.get('password')
         )
-        # VM一覧を取得
-        result = get_vms_list()
-        vm_formated_info.append(result)
+        # VM一覧を結合
+        vm_list = get_vms_list()
+        vm_power = get_vms_power()
+        for vm in vm_list:
+            vm['uniq_id'] = hostname + '|' + vm.get('id')
+            vm['physical_host'] = hostname
+            try:
+                vm['power'] = vm_power[vm['id']]
+            except KeyError:
+                vm['power'] = 'error'
+        vm_formated_info.extend(vm_list)
     
     return vm_formated_info
 
 
 def main():
-    result = init_vm()
-    for esx in result:
-        for p in esx:
-            print(p)
+    for a in app_top():
+        print(a['uniq_id'])
+    pass
 
 
 if __name__ == '__main__':

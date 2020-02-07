@@ -46,7 +46,6 @@ async def master(esxi_hostname):
     vm_info = [line.strip('\n').split() for line in stdout][1:]
 
     tasks = [asyncio.create_task(_add_vm_info(vm, esxi_hostname)) for vm in vm_info]
-    # tasks = [asyncio.create_task(sleeping(3)) for vm in vm_info]
     result = await asyncio.gather(*tasks)
     return result
 
