@@ -20,7 +20,7 @@ def get_vm_detail(uniq_id):
     )
     stdin, stdout, stderr = client.exec_command(f'vim-cmd vmsvc/get.summary {vmid}')
     # client.close()
-    return stdout.read().decode('ascii').replace('\n', '\n')
+    return stdout.read().decode()
 
 """ VMのリストを取得 """
 def get_vms_list():
@@ -30,7 +30,6 @@ def get_vms_list():
 
     return [{
         'uniq_id':dat[0],
-        # 'physical_host': esxi_hostname,
         'id': dat[0],
         'name': dat[1],
         'datastore': dat[2],
