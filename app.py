@@ -9,18 +9,18 @@ app.config['JSON_AS_ASCII'] = False  # JSONでの日本語文字化け対策
 
 
 @app.route('/', methods=['GET'])
-def index():
+def top():
     return render_template('top.html', title='TOP', machines=connect.app_top())
 
 
-@app.route('/power/<string:my_vmid>', methods=['GET'])
-def power(my_vmid):
-    my_title = escape('POWER :'+my_vmid)
-    return render_template('power.html', title=my_title, detail=connect.get_vm_detail(my_vmid), navigation=(
+@app.route('/machine/<string:uniq_id>', methods=['GET'])
+def detail(uniq_id):
+    my_title = escape('DETAIL: '+uniq_id)
+    return render_template('detail.html', title=my_title, detail=connect.app_detail(uniq_id), navigation=(
         {'href':'#', 'caption':'Power OFF'},
         {'href':'#', 'caption':'Power ON'},
         {'href':'#', 'caption':'Suspend'},
-        ))
+    ))
 
 
 if __name__ == '__main__':

@@ -11,12 +11,14 @@
         <th>Guest OS</th>
         <th>VM Version</th>
         <th>Comment</th>
+	<th>Author</th>
+	<th>Created At</th>
       </tr>
     </thead>
     <tbody>
     {% for machine in machines %}
       <tr>
-        <td><a href="/power/{{machine.uniq_id}}">{{ machine.power }}</a></td>
+        <td><a href="/machine/{{machine.uniq_id}}">{{ machine.power }}</a></td>
         <td>{{ machine.physical_host }}</td>
         <td>{{ machine.id }}</td>
         <td>{{ machine.name }}</td>
@@ -25,6 +27,8 @@
         <td>{{ machine.guest_os }}</td>
         <td>{{ machine.vm_version }}</td>
         <td>{{ machine.comment }}</td>
+	<td>{{ machine.memo.author | default('') }}</td>
+	<td>{{ machine.memo.created_at | default('') }}</td>
       </tr>
     {% endfor %}
     </tbody>
