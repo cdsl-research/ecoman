@@ -14,6 +14,16 @@ def get_esxi_hosts():
         return yaml.safe_load(f.read())
 
 
+# """ ESXiのhost->addrを解決 """
+# def app_resolve_esxi_addr(esxi_host):
+#     esxi_dct = get_esxi_hosts()
+#     try:
+#         esxi_addr = esxi_dct[esxi_host]['addr']
+#     except KeyError:
+#         raise ValueError("Cloud not resolve host. Given undefined host.")
+#     return esxi_addr
+
+
 """ VMのリストを取得 """
 def get_vms_list():
     import re
@@ -37,7 +47,6 @@ def get_vms_list():
 
             dat = line.strip('\n').split()
             vm_info.append({
-                'uniq_id':dat[0],
                 'id': dat[0],
                 'name': dat[1],
                 'datastore': dat[2],
@@ -127,7 +136,8 @@ def app_top():
         vm_power = get_vms_power()
         for vm in vm_list:
             vm['uniq_id'] = hostname + '|' + vm.get('id')
-            vm['physical_host'] = hostname
+            vm['esxi_host'] = hostname
+            vm['esxi_addr'] = param.get('addr')
             try:
                 vm['power'] = vm_power[vm['id']]
             except KeyError:

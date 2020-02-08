@@ -3,32 +3,30 @@
     <thead>
       <tr>
         <th>Power</th>
-        <th>Physical Host</th>
-        <th>ID</th>
+	<th>Uniq ID</th>
         <th>Name</th>
         <th>Datastore</th>
         <th>Datastore Path</th>
         <th>Guest OS</th>
-        <th>VM Version</th>
         <th>Comment</th>
 	<th>Author</th>
 	<th>Created At</th>
+	<th>Tags</th>
       </tr>
     </thead>
     <tbody>
     {% for machine in machines %}
       <tr>
-        <td><a href="/machine/{{machine.uniq_id}}">{{ machine.power }}</a></td>
-        <td>{{ machine.physical_host }}</td>
-        <td>{{ machine.id }}</td>
+        <td><a href="/machine/{{ machine.uniq_id }}">{{ machine.power }}</a></td>
+	<td><a href="https://{{ machine.esxi_addr }}/ui/#/host/vms/{{ machine.id }}">{{ machine.uniq_id }}</a></td>
         <td>{{ machine.name }}</td>
         <td>{{ machine.datastore }}</td>
         <td>{{ machine.datastore_path }}</td>
         <td>{{ machine.guest_os }}</td>
-        <td>{{ machine.vm_version }}</td>
         <td>{{ machine.comment }}</td>
 	<td>{{ machine.memo.author | default('') }}</td>
 	<td>{{ machine.memo.created_at | default('') }}</td>
+	<td>{{ ', '.join(machine.memo.tag) | default('') }}</td>
       </tr>
     {% endfor %}
     </tbody>

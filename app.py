@@ -1,11 +1,11 @@
-from flask import Flask, request, jsonify, render_template, escape
-import os
-import json
+from flask import Flask, render_template, escape
+
 import connect
 
 
 app = Flask(__name__)
 app.config['JSON_AS_ASCII'] = False  # JSONでの日本語文字化け対策
+# app.jinja_env.filters['resolve_esxi_addr'] = lambda host: connect.app_resolve_esxi_addr(host)
 
 
 @app.route('/', methods=['GET'])
