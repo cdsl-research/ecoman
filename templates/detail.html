@@ -1,8 +1,56 @@
 {% include "_header.html" %}
-    <ul id="navigation">
-    {% for item in navigation %}
-        <li><a href="{{ item.href }}">{{ item.caption }}</a></li>
-    {% endfor %}
-    </ul>
-    <pre> {{ detail }} </pre>
+
+<h2>Power:</h2>
+
+<table border=1>
+<tr>
+  <th>Current Status</th>
+  <td><span id="current_power"></span></td>
+</tr>
+<tr>
+  <th>Change Status</th>
+  <td>
+    <select id="power_state">
+      <option value="on">ON</option>
+      <option value="off">OFF</option>
+      <option value="reset">RESET</option>
+      <option value="reboot">REBOOT</option>
+      <option value="shutdown">SHUTDOWN</option>
+      <option value="suspend">SUSPEND</option>
+    </select>
+    <button id="commit">Commit</button>
+    <p id="message"></p>
+  </td>
+</tr>
+</table>
+
+<pre> {{ detail }} </pre>
+
+<script>
+let setPower = function() {
+  const url = '/power/jasmine|38';
+  const powerState = document.getElementById('power_state').value;
+  const payload = {'state': powerState};
+  
+  fetch(url, {
+    method: 'POST',
+    body: JSON.stringify(payload), // data can be `string` or {object}!
+    headers:{
+      'Content-Type': 'application/json'
+    }
+  }).then(res => res.json())
+    .then(response => {
+      console.log('Success:', JSON.stringify(response));
+      document.getElementById('message').innerHTML = 'Success: ' + response['detail'];
+      document.getElementById('current_power').innerHTML = powerState.toUpperCase();
+    })
+    .catch(error => {
+      console.error('Error:', error)
+      document.getElementById('message').innerHTML = error;
+    });
+}
+
+let commitButton = document.getElementById('commit');
+commitButton.addEventListener("click", setPower, false);
+</script>
 {% include "_footer.html" %}

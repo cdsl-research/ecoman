@@ -9,6 +9,8 @@
         <th>Guest OS</th>
         <th>Comment</th>
 	<th>Author</th>
+	<th>User</th>
+	<th>Password</th>
 	<th>Created At</th>
 	<th>Tags</th>
       </tr>
@@ -23,6 +25,8 @@
         <td>{{ machine.guest_os }}</td>
         <td>{{ machine.comment }}</td>
         <td>{{ machine.memo.author | default('') }}</td>
+	<td>{{ machine.memo.user | default('') }}</td>
+	<td>{{ machine.memo.password| default('') }}</td>
         <td>{{ machine.memo.created_at | default('') }}</td>
         <td>{{ ', '.join(machine.memo.tag) | default('') }}</td>
       </tr>
