@@ -16,8 +16,8 @@ def top():
 
 @app.route('/machine/<string:uniq_id>', methods=['GET'])
 def detail(uniq_id):
-    my_title = escape('DETAIL: '+uniq_id)
-    return render_template('detail.html', title=my_title, detail=connect.app_detail(uniq_id))
+    uniq_id_safe = escape(uniq_id)
+    return render_template('detail.html', title='DETAIL: '+uniq_id_safe, uniq_id=uniq_id_safe, detail=connect.app_detail(uniq_id))
 
 
 @app.route('/power/<string:uniq_id>', methods=['POST'])

@@ -28,7 +28,7 @@
 
 <script>
 let setPower = function() {
-  const url = '/power/jasmine|38';
+  const url = '/power/{{ uniq_id }}';
   const powerState = document.getElementById('power_state').value;
   const payload = {'state': powerState};
   
