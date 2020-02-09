@@ -1,4 +1,5 @@
-from flask import Flask, render_template, escape
+from flask import Flask, render_template, escape, request, jsonify
+import json
 
 import connect
 
@@ -16,11 +17,29 @@ def top():
 @app.route('/machine/<string:uniq_id>', methods=['GET'])
 def detail(uniq_id):
     my_title = escape('DETAIL: '+uniq_id)
-    return render_template('detail.html', title=my_title, detail=connect.app_detail(uniq_id), navigation=(
-        {'href':'#', 'caption':'Power OFF'},
-        {'href':'#', 'caption':'Power ON'},
-        {'href':'#', 'caption':'Suspend'},
-    ))
+    return render_template('detail.html', title=my_title, 
+        detail=connect.app_detail(uniq_id), 
+        navigation=(
+            {'href':'#', 'caption':'Power OFF'},
+            {'href':'#', 'caption':'Power ON'},
+            {'href':'#', 'caption':'Suspend'},
+        ))
+
+
+@app.route('/power/<string:uniq_id>', methods=['POST'])
+def set_power(uniq_id):
+    """
+    curl -s -XPOST -d '{"state": "on"}'  "http://192.168.100.3:3000/power/jasmine|38"
+    """
+    # Parse Request
+    req_data = request.get_data()
+    req_txt = req_data.decode('utf-8')
+    payload = json.loads(req_txt)
+    # Get Request status
+    power_state = payload.get('state')
+    # Change status
+    result = connect.app_set_power(uniq_id, power_state)
+    return jsonify({"status": "ok", "detail": result})
 
 
 if __name__ == '__main__':

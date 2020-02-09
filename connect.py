@@ -91,8 +91,8 @@ def get_vms_power():
 
 
 """ 個別VMの詳細を取得 """
-def get_vm_detail(hostname, vmid):
-    hostinfo = get_esxi_hosts().get(hostname)
+def get_vm_detail(esxi_hostname, vmid):
+    hostinfo = get_esxi_hosts().get(esxi_hostname)
     if hostinfo is None:
         return "error"
     client.connect(
@@ -105,21 +105,30 @@ def get_vm_detail(hostname, vmid):
     return stdout.read().decode()
 
 
-# def set_vm_power(state, my_vmid):
-#     assert state in ('on', 'off'), "Power state is not in ('on', 'off')"
-#     esxi_hostname, vmid = my_vmid.split('|')
-#     # get esxi hosts
-#     esxi_hosts = _get_esxi_hosts()
-#     # connect target esxi host
-#     host = esxi_hosts.get(esxi_hostname)
-#     client.connect(
-#         hostname=host.get('hostname'),
-#         username=host.get('username'),
-#         password=host.get('password')
-#     )
-#     stdin, stdout, stderr = client.exec_command(f'vim-cmd vmsvc/power.{state} {vmid}')
-#     client.close()
-#     return stdout
+""" 個別VMの電源を操作 """
+def set_vm_power(esxi_hostname, vmid, power_state):
+    host = get_esxi_hosts().get(esxi_hostname)
+    assert host is not None, "Undefined uniq_id."
+    POWER_STATE = ('on', 'off', 'shutdown', 'reset', 'reboot', 'suspend')
+    assert power_state in POWER_STATE, "Invalid power state."
+    
+    client.connect(
+        hostname=host.get('addr'),
+        username=host.get('username'),
+        password=host.get('password')
+    )
+    stdin, stdout, stderr = client.exec_command(f'vim-cmd vmsvc/power.{power_state} {vmid}')
+    # TODO: 判定を作成
+    '''
+    ON) Powering on VM:
+    SHUTDOWN) 空
+    OFF) Powering off VM:
+    RESET) Reset VM:
+    REBOOT) 空
+    SUSPEND) Suspending VM:
+    '''
+    # client.close()
+    return stdout.read().decode().strip('\n')
 
 
 def app_top():
@@ -150,6 +159,11 @@ def app_top():
 def app_detail(uniq_id):
     hostname,vmid = uniq_id.split('|')
     return get_vm_detail(hostname, vmid)
+
+
+def app_set_power(uniq_id, power_state):
+    hostname, vmid = uniq_id.split('|')
+    return set_vm_power(hostname, vmid, power_state)
 
 
 def main():
