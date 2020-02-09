@@ -6,7 +6,6 @@
 	<th>Uniq ID</th>
         <th>Name</th>
         <th>Datastore</th>
-        <th>Datastore Path</th>
         <th>Guest OS</th>
         <th>Comment</th>
 	<th>Author</th>
@@ -17,16 +16,15 @@
     <tbody>
     {% for machine in machines %}
       <tr>
-        <td><a href="/machine/{{ machine.uniq_id }}">{{ machine.power }}</a></td>
-	<td><a href="https://{{ machine.esxi_addr }}/ui/#/host/vms/{{ machine.id }}">{{ machine.uniq_id }}</a></td>
-        <td>{{ machine.name }}</td>
+        <td>{{ machine.power | upper() }}</td>
+        <td><a href="https://{{ machine.esxi_addr }}/ui/#/host/vms/{{ machine.id }}" target="_blank">{{ machine.uniq_id }}</a></td>
+        <td><a href="/machine/{{ machine.uniq_id }}">{{ machine.name }}</a></td>
         <td>{{ machine.datastore }}</td>
-        <td>{{ machine.datastore_path }}</td>
         <td>{{ machine.guest_os }}</td>
         <td>{{ machine.comment }}</td>
-	<td>{{ machine.memo.author | default('') }}</td>
-	<td>{{ machine.memo.created_at | default('') }}</td>
-	<td>{{ ', '.join(machine.memo.tag) | default('') }}</td>
+        <td>{{ machine.memo.author | default('') }}</td>
+        <td>{{ machine.memo.created_at | default('') }}</td>
+        <td>{{ ', '.join(machine.memo.tag) | default('') }}</td>
       </tr>
     {% endfor %}
     </tbody>
