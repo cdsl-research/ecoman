@@ -24,11 +24,35 @@ def setter(stack, value, before=None):
 
 def parser(content):
     stack2 = []
+    value_tmp = ''
+    is_annotation = False
     for line in content:
         l2 = line.strip()
         # print('cur-stack:', stack2)
         # print('line:', l2)
-        
+
+        # Header
+        if re.match(r'\Aannotation = "', l2):
+            is_annotation = True
+            key = 'annotation'
+            value_tmp += l2.strip('annotation = "')
+            stack2.append(key)
+            continue
+
+        # Footer
+        elif is_annotation and re.match(r'\Aproduct = ', l2):
+            is_annotation = False
+            # ",を取り除く
+            setter(stack2, value_tmp[:-2])
+            del stack2[-1]
+            value_tmp = ''
+            # continueは不要
+
+        # Body
+        elif is_annotation:
+            value_tmp += l2
+            continue
+
         if re.match(r'\A"\S+",?\Z', l2):
             # print('"xxx",', '\t', l2)
             value = l2.strip(',')[1:-2]
