@@ -1,5 +1,6 @@
+import re
+import json
 import paramiko
-import asyncio
 
 import vim_cmd_parser
 
@@ -97,15 +98,35 @@ def get_vm_detail(esxi_hostname, vmid):
     hostinfo = get_esxi_hosts().get(esxi_hostname)
     if hostinfo is None:
         return "error"
+
     client.connect(
         hostname=hostinfo.get('addr'),
         username=hostinfo.get('username'),
         password=hostinfo.get('password')
     )
     stdin, stdout, stderr = client.exec_command(f'vim-cmd vmsvc/get.summary {vmid}')
-    # client.close()
-    return vim_cmd_parser.parser(stdout.read().decode().split('\n'))
+    vm_detail = vim_cmd_parser.parser(stdout.read().decode().split('\n'))
+    info_tag = re.search(r'<info>.*</info>', vm_detail['vim.vm.Summary']['config']['annotation'])
+    
+    # Have json data
+    if info_tag is not None:
+        json_str = info_tag.group().strip('<info>').strip('</info>')
+        vm_org_info = json.loads(json_str)
+        annotation = re.sub(r'<info>.*</info>', '', vm_detail['vim.vm.Summary']['config']['annotation'])
+    else:
+        vm_org_info = dict()
+        annotation = vm_detail['vim.vm.Summary']['config']['annotation']
 
+    format_func = lambda x: '' if x is None else x
+
+    vm_detail['info'] = {
+        'author': format_func(vm_org_info.get('author')),
+        'user': format_func(vm_org_info.get('user')),
+        'password': format_func(vm_org_info.get('password')),
+        'created_at': ', '.join(format_func(vm_org_info.get('tag'))),
+        'annotation': format_func(annotation)
+    }
+    return vm_detail
 
 """ 個別VMの電源を操作 """
 def set_vm_power(esxi_hostname, vmid, power_state):

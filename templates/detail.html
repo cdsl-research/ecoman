@@ -24,8 +24,28 @@
 </tr>
 </table>
 
+<h2>Info:</h2>
+<table border=1>
+<tr>
+  <td>User</td>
+  <td>{{ detail.info.user | default('') }}</td>
+</tr>
+<tr>
+  <td>Password</td>
+  <td>{{ detail.get('info').get('password') }}</td>
+</tr>
+<tr>
+  <td>Author</td>
+  <td>{{ detail.get('info').get('author') }}</td>
+</tr>
+<tr>
+  <td>Created At</td>
+  <td>{{ detail.get('info').get('created_at') }}</td>
+</tr>
+</table>
+
 <h2>Detail:</h2>
-<table>
+<table border=1>
 <tr>
   <td>VM Health Status</td>
   <td>{{ detail.get('vim.vm.Summary').get('overallStatus') }}</td>
