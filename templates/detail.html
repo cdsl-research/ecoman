@@ -5,7 +5,7 @@
 <table border=1>
 <tr>
   <th>Current Status</th>
-  <td><span id="current_power"></span></td>
+  <td><span id="current_power">{{ detail.get('vim.vm.Summary').get('runtime').get('powerState') }}</span></td>
 </tr>
 <tr>
   <th>Change Status</th>
@@ -24,7 +24,53 @@
 </tr>
 </table>
 
-<pre> {{ detail }} </pre>
+<h2>Detail:</h2>
+<table>
+<tr>
+  <td>VM Health Status</td>
+  <td>{{ detail.get('vim.vm.Summary').get('overallStatus') }}</td>
+</tr>
+<tr>
+  <td>BootTime</td>
+  <td>{{ detail.get('vim.vm.Summary').get('runtime').get('bootTime') }}</td>
+</tr>
+<tr>
+  <td>Max CPU Usage</td>
+  <td>{{ detail.get('vim.vm.Summary').get('runtime').get('maxCpuUsage') }}</td>
+</tr>
+<tr>
+  <td>VM Name</td>
+  <td>{{ detail.get('vim.vm.Summary').get('config').get('name') }}</td>
+</tr>
+<tr>
+  <td>VM Path</td>
+  <td>{{ detail.get('vim.vm.Summary').get('config').get('vmPathName') }}</td>
+</tr>
+<tr>
+  <td>VM Num of CPU</td>
+  <td>{{ detail.get('vim.vm.Summary').get('config').get('numCpu') }}</td>
+</tr>
+<tr>
+  <td>VM Memory Size</td>
+  <td>{{ detail.get('vim.vm.Summary').get('config').get('memorySizeMB') }}</td>
+</tr>
+<tr>
+  <td>VM Num of Ethernet Cards</td>
+  <td>{{ detail.get('vim.vm.Summary').get('config').get('numEthernetCards') }}</td>
+</tr>
+<tr>
+  <td>VM Num of Virtual Disks</td>
+  <td>{{ detail.get('vim.vm.Summary').get('config').get('numVirtualDisks') }}</td>
+</tr>
+<tr>
+  <td>Annotation</td>
+  <td>{{ detail.get('vim.vm.Summary').get('config').get('annotation') }}</td>
+</tr>
+<tr>
+  <td>VM Guest Name</td>
+  <td>{{ detail.get('vim.vm.Summary').get('config').get('guestFullName') }}</td>
+</tr>
+</table>
 
 <script>
 let setPower = function() {

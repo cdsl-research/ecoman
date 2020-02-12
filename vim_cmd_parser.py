@@ -2,30 +2,34 @@ import re
 from collections import defaultdict
 
 
-nested_dict = lambda: defaultdict(nested_dict)
-_params = nested_dict()
-
+_params = {}
 
 def setter(stack, value, before=None):
     # 値渡しにするため
     my_stack = list(stack)
-    # print('setter()', 'stack=', stack)
 
+    # print('setter()', 'stack=', my_stack)
+
+    # スタックが空
     if len(my_stack) <= 1:
         key = my_stack.pop(0)
-        if before is None:
-            return
         before[key] = value
+        # import json
+        # print('before:', json.dumps(before, indent=4))
+
     else:
         key = my_stack.pop(0)
-        before = _params[key]
-        setter(my_stack, value, before)
+        if before.get(key) is None:
+            before[key] = dict()
+        setter(my_stack, value, before[key])
 
 
 def parser(content):
     stack2 = []
     value_tmp = ''
     is_annotation = False
+    _params2 = {}
+
     for line in content:
         l2 = line.strip()
         # print('cur-stack:', stack2)
@@ -43,7 +47,7 @@ def parser(content):
         elif is_annotation and re.match(r'\Aproduct = ', l2):
             is_annotation = False
             # ",を取り除く
-            setter(stack2, value_tmp[:-2])
+            setter(stack2, value_tmp[:-2], _params2)
             del stack2[-1]
             value_tmp = ''
             # continueは不要
@@ -56,14 +60,14 @@ def parser(content):
         if re.match(r'\A"\S+",?\Z', l2):
             # print('"xxx",', '\t', l2)
             value = l2.strip(',')[1:-2]
-            setter(stack2, value)
+            setter(stack2, value, _params2)
 
         elif re.match(r'\A\S+ = [\'\(\"][\S ]*[\'\)\"],?\Z', l2):
             # print('xxx = "yyy",', '\t', l2)
             key = l2.split(' = ')[0]
             value = l2.split(' = ')[1].strip(',')[1:-1]
             stack2.append(key)
-            setter(stack2, value)
+            setter(stack2, value, _params2)
             del stack2[-1]
 
         elif re.match(r'\A\S+ = \d+,?\Z', l2):
@@ -71,7 +75,7 @@ def parser(content):
             key = l2.split(' = ')[0]
             value = l2.split(' = ')[1].strip(',')
             stack2.append(key)
-            setter(stack2, int(value))
+            setter(stack2, int(value), _params2)
             del stack2[-1]
 
         elif re.match(r'\A\S+ = (true|false|\<unset\>)+,?\Z', l2):
@@ -80,14 +84,14 @@ def parser(content):
             value = l2.split(' = ')[1].strip(',').capitalize()
             value2 = None if value == '<unset>' else eval(value)
             stack2.append(key)
-            setter(stack2, value2)
+            setter(stack2, value2, _params2)
             del stack2[-1]
 
         elif re.match(r'\A\S+ = \(\S+\) null,?\Z', l2):
             # print('xxx = (yyy) null', '\t', l2)
             key = l2.split(' = ')[0]
             stack2.append(key)
-            setter(stack2, None)
+            setter(stack2, None, _params2)
             del stack2[-1]
 
         elif re.match(r'\A\(\S+\) \{\Z', l2):
@@ -111,7 +115,7 @@ def parser(content):
             # print(' '*8, '\t', l2)
             print('Fail to parse:', l2)
 
-    return _params       
+    return _params2
 
 
 def main():
@@ -119,10 +123,8 @@ def main():
         content = f.readlines()
 
     result = parser(content)
-    # debug
-    for k,v in result.items():
-        for k2,v2 in v.items():
-            print(k,k2,'=',v2)
+    import json
+    print(json.dumps(result, indent=4))
 
 
 if __name__ == '__main__':

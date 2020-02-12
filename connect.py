@@ -1,6 +1,8 @@
 import paramiko
 import asyncio
 
+import vim_cmd_parser
+
 
 """ Init ssh connecter """
 client = paramiko.SSHClient()
@@ -102,7 +104,7 @@ def get_vm_detail(esxi_hostname, vmid):
     )
     stdin, stdout, stderr = client.exec_command(f'vim-cmd vmsvc/get.summary {vmid}')
     # client.close()
-    return stdout.read().decode()
+    return vim_cmd_parser.parser(stdout.read().decode().split('\n'))
 
 
 """ 個別VMの電源を操作 """
