@@ -5,7 +5,7 @@
 <table border=1>
 <tr>
   <th>Current Status</th>
-  <td><span id="current_power">{{ detail.get('vim.vm.Summary').get('runtime').get('powerState') }}</span></td>
+  <td><span id="current_power">{{ detail.get('vim.vm.Summary').get('runtime').get('powerState') | default('') }}</span></td>
 </tr>
 <tr>
   <th>Change Status</th>
@@ -27,68 +27,87 @@
 <h2>Info:</h2>
 <table border=1>
 <tr>
+  <td>SSH Command</td>
+  <td>ssh {{ detail.info.user }}@{{ detail.get('vim.vm.Summary').guest.hostName }}</td>
+</tr>
+<tr>
   <td>User</td>
   <td>{{ detail.info.user | default('') }}</td>
 </tr>
 <tr>
   <td>Password</td>
-  <td>{{ detail.get('info').get('password') }}</td>
+  <td>{{ detail.info.password }}</td>
 </tr>
 <tr>
   <td>Author</td>
-  <td>{{ detail.get('info').get('author') }}</td>
+  <td>{{ detail.info.author }}</td>
 </tr>
 <tr>
   <td>Created At</td>
-  <td>{{ detail.get('info').get('created_at') }}</td>
+  <td>{{ detail.info.created_at }}</td>
 </tr>
+<tr>
+  <td>Tags</td>
+  <td>{{ detail.info.tag }}</td>
+</tr>
+<tr>
+  <td>HostName</td>
+  <td>{{ detail.get('vim.vm.Summary').guest.hostName }}</td>
+</tr>
+<tr>
+  <td>IP Address</td>
+  <td>{{ detail.get('vim.vm.Summary').guest.ipAddress }}</td>
+</tr>
+<tr>
+  <td>VMware Tools Status</td>
+  <td>{{ detail.get('vim.vm.Summary').guest.toolsStatus }}</td>
 </table>
 
 <h2>Detail:</h2>
 <table border=1>
 <tr>
   <td>VM Health Status</td>
-  <td>{{ detail.get('vim.vm.Summary').get('overallStatus') }}</td>
+  <td>{{ detail.get('vim.vm.Summary').overallStatus }}</td>
 </tr>
 <tr>
   <td>BootTime</td>
-  <td>{{ detail.get('vim.vm.Summary').get('runtime').get('bootTime') }}</td>
+  <td>{{ detail.get('vim.vm.Summary').runtime.bootTime }}</td>
 </tr>
 <tr>
   <td>Max CPU Usage</td>
-  <td>{{ detail.get('vim.vm.Summary').get('runtime').get('maxCpuUsage') }}</td>
+  <td>{{ detail.get('vim.vm.Summary').runtime.maxCpuUsage }}</td>
 </tr>
 <tr>
   <td>VM Name</td>
-  <td>{{ detail.get('vim.vm.Summary').get('config').get('name') }}</td>
+  <td>{{ detail.get('vim.vm.Summary').config.name }}</td>
 </tr>
 <tr>
   <td>VM Path</td>
-  <td>{{ detail.get('vim.vm.Summary').get('config').get('vmPathName') }}</td>
+  <td>{{ detail.get('vim.vm.Summary').config.vmPathName }}</td>
 </tr>
 <tr>
   <td>VM Num of CPU</td>
-  <td>{{ detail.get('vim.vm.Summary').get('config').get('numCpu') }}</td>
+  <td>{{ detail.get('vim.vm.Summary').config.numCpu }}</td>
 </tr>
 <tr>
   <td>VM Memory Size</td>
-  <td>{{ detail.get('vim.vm.Summary').get('config').get('memorySizeMB') }}</td>
+  <td>{{ detail.get('vim.vm.Summary').config.memorySizeMB }}</td>
 </tr>
 <tr>
   <td>VM Num of Ethernet Cards</td>
-  <td>{{ detail.get('vim.vm.Summary').get('config').get('numEthernetCards') }}</td>
+  <td>{{ detail.get('vim.vm.Summary').config.numEthernetCards }}</td>
 </tr>
 <tr>
   <td>VM Num of Virtual Disks</td>
-  <td>{{ detail.get('vim.vm.Summary').get('config').get('numVirtualDisks') }}</td>
+  <td>{{ detail.get('vim.vm.Summary').config.numVirtualDisks }}</td>
 </tr>
 <tr>
   <td>Annotation</td>
-  <td>{{ detail.get('vim.vm.Summary').get('config').get('annotation') }}</td>
+  <td>{{ detail.info.annotation }}</td>
 </tr>
 <tr>
   <td>VM Guest Name</td>
-  <td>{{ detail.get('vim.vm.Summary').get('config').get('guestFullName') }}</td>
+  <td>{{ detail.get('vim.vm.Summary').config.guestFullName }}</td>
 </tr>
 </table>
 
