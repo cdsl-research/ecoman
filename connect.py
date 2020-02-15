@@ -90,7 +90,6 @@ def get_vms_power():
         else:
             result[vmid] = 'unknown'
 
-    print(result)
     return result
 
 
@@ -134,6 +133,7 @@ def get_vm_detail(esxi_hostname, vmid):
         'annotation': format_func(annotation)
     }
     return vm_detail
+
 
 """ 個別VMの電源を操作 """
 def set_vm_power(esxi_hostname, vmid, power_state):

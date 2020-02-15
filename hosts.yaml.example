@@ -1,4 +1,4 @@
 hoge:
-  hostname: 'hoge.a910.tak-cslab.org'
+  addr: 'hoge.a910.tak-cslab.org'
   username: 'root'
   password: 'kj;fdskfa;sd'
