@@ -38,7 +38,7 @@ def get_vms_list():
         # 数字から始まる行
         if re.match(r'^\d+', line):
             # 前の要素を更新
-            if len(vm_info) > 1:
+            if len(vm_info) > 0:
                 vm_memo = re.search(r'<info>.+</info>', vm_info[-1]['comment'], flags=re.DOTALL)
                 # <info>xxx</info>を含む
                 if vm_memo is not None:
