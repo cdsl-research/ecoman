@@ -43,7 +43,7 @@ def get_vms_list():
                 # <info>xxx</info>を含む
                 if vm_memo is not None:
                     json_str = vm_memo.group().strip('<info>').strip('</info>').strip('\n')
-                    print(json_str)
+                    # print(json_str)
                     vm_info[-1]['memo'] = json.loads(json_str)
                     # comment属性の<info>xxx</info>を取り除く
                     vm_info[-1]['comment'] = re.sub(r'<info>.*</info>', '', vm_info[-1]['comment'], flags=re.DOTALL)
@@ -71,7 +71,7 @@ def get_vms_list():
 def get_vms_power():
     # VMの電源一覧を取得
     stdin, stdout, stderr = client.exec_command("""
-    for id in `vim-cmd vmsvc/getallvms | sed '/^Vmid.*$/d' | awk '{print $1}'`
+    for id in `vim-cmd vmsvc/getallvms | grep '^[0-9]\+' | awk '{print $1}'`
     do
       vim-cmd vmsvc/power.getstate $id | grep -v Retrieved | sed "s/^/$id|/g" &
     done
@@ -90,6 +90,7 @@ def get_vms_power():
         else:
             result[vmid] = 'unknown'
 
+    print(result)
     return result
 
 
@@ -106,7 +107,11 @@ def get_vm_detail(esxi_hostname, vmid):
     )
     stdin, stdout, stderr = client.exec_command(f'vim-cmd vmsvc/get.summary {vmid}')
     vm_detail = vim_cmd_parser.parser(stdout.read().decode().split('\n'))
-    info_tag = re.search(r'<info>.*</info>', vm_detail['vim.vm.Summary']['config']['annotation'])
+    # TODO: vm_detailが空か判定する
+    try:
+        info_tag = re.search(r'<info>.*</info>', vm_detail['vim.vm.Summary']['config']['annotation'])
+    except KeyError:
+        info_tag = None
     
     # Have json data
     if info_tag is not None:
@@ -115,7 +120,8 @@ def get_vm_detail(esxi_hostname, vmid):
         annotation = re.sub(r'<info>.*</info>', '', vm_detail['vim.vm.Summary']['config']['annotation'])
     else:
         vm_org_info = dict()
-        annotation = vm_detail['vim.vm.Summary']['config']['annotation']
+        annotation = '' 
+        #vm_detail['vim.vm.Summary']['config']['annotation']
 
     format_func = lambda x: '' if x is None else x
 
@@ -123,7 +129,8 @@ def get_vm_detail(esxi_hostname, vmid):
         'author': format_func(vm_org_info.get('author')),
         'user': format_func(vm_org_info.get('user')),
         'password': format_func(vm_org_info.get('password')),
-        'created_at': ', '.join(format_func(vm_org_info.get('tag'))),
+        'created_at': format_func(vm_org_info.get('created_at')),
+        'tag': ', '.join(format_func(vm_org_info.get('tag'))),
         'annotation': format_func(annotation)
     }
     return vm_detail
