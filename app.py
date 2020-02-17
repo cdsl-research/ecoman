@@ -20,6 +20,10 @@ def detail(uniq_id):
     return render_template('detail.html', title='DETAIL: '+uniq_id_safe, uniq_id=uniq_id_safe, detail=connect.app_detail(uniq_id))
 
 
+@app.route('/create', methods=['GET'])
+def create_vm():
+    return render_template('create.html', title='CREATE VM')
+
 @app.route('/v1/power/<string:uniq_id>', methods=['POST'])
 def set_power(uniq_id):
     """

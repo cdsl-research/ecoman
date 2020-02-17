@@ -1,0 +1,78 @@
+{% include "_header.html" %}
+
+<form>
+  <fieldset>
+    <legend>Hardware</legend>
+
+    <label>VM Name</label>
+    <input type='text' name='name'>
+    <br>
+
+    <label>VM Num of CPU</label>
+    <input type='number' name='cpu' value='1' min='1' max='4'>
+    <br>
+
+    <label>VM Memory Size</label>
+    <select name='ram'>
+      <option value='500'>500MB</option>
+      <option value='1000'>1GB</option>
+      <option value='2000'>2GB</option>
+      <option value='4000'>4GB</option>
+      <option value='8000'>8GB</option>
+    </select>
+    <br>
+
+    <label>VM Storage Size</label>
+    <select name='ssd'>
+      <option value='30'>30GB</option>
+      <option value='50'>50GB</option>
+      <option value='70'>70GB</option>
+    </select>
+    <br>
+
+    <label>VM Network</label>
+    <select name='network'>
+      <option value='dmz'>DMZ</option>
+      <option value='private'>Private</option>
+    </select>
+    <br>
+
+    <label>VM OS</label>
+    <select name='os'>
+      <option value='ubuntu1804'>Ubuntu 18.04</option>
+      <option value='ubuntu1604'>Ubuntu 16.04</option>
+      <option value='centos7'>CentOS 7</option>
+    </select>
+    <br>
+  </fieldset>
+
+  <fieldset>
+    <legend>Software</legend>
+
+    <label>Admin User</label>
+    <input type='text' name='user'>
+    <br>
+
+    <label>Admin User Password</label>
+    <input type='password' name='password'>
+    <br>
+
+    <label>Hostname</label>
+    <input type='text' name='hostname'>
+    <br>
+
+    <!-- select from exist tags -->
+    <label>Tag(separate comma)</label>
+    <input type='text' name='tag'>
+    <br>
+
+    <label>Memo</label>
+    <textarea></textarea>
+    <br>
+
+  </fieldset>
+
+  <button>Create</button>
+</form>
+
+{% include "_footer.html" %}
