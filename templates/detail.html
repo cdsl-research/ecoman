@@ -113,7 +113,7 @@
 
 <script>
 let setPower = function() {
-  const url = '/power/{{ uniq_id }}';
+  const url = '/v1/power/{{ uniq_id }}';
   const powerState = document.getElementById('power_state').value;
   const payload = {'state': powerState};
   

@@ -20,7 +20,7 @@ def detail(uniq_id):
     return render_template('detail.html', title='DETAIL: '+uniq_id_safe, uniq_id=uniq_id_safe, detail=connect.app_detail(uniq_id))
 
 
-@app.route('/power/<string:uniq_id>', methods=['POST'])
+@app.route('/v1/power/<string:uniq_id>', methods=['POST'])
 def set_power(uniq_id):
     """
     curl -s -XPOST -d '{"state": "on"}'  "http://192.168.100.3:3000/power/jasmine|38"
