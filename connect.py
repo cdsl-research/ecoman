@@ -112,18 +112,16 @@ def get_vm_detail(esxi_hostname, vmid):
     except KeyError:
         info_tag = None
     
-    # Have json data
-    if info_tag is not None:
+    # Don't have json data
+    if info_tag is None:
+        vm_org_info = dict()
+        annotation = '' 
+    else:
         json_str = info_tag.group().strip('<info>').strip('</info>')
         vm_org_info = json.loads(json_str)
         annotation = re.sub(r'<info>.*</info>', '', vm_detail['vim.vm.Summary']['config']['annotation'])
-    else:
-        vm_org_info = dict()
-        annotation = '' 
-        #vm_detail['vim.vm.Summary']['config']['annotation']
 
     format_func = lambda x: '' if x is None else x
-
     vm_detail['info'] = {
         'author': format_func(vm_org_info.get('author')),
         'user': format_func(vm_org_info.get('user')),
