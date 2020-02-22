@@ -113,12 +113,12 @@
 
 <script>
 let setPower = function() {
-  const url = '/v1/power/{{ uniq_id }}';
+  const url = '/v1/machine/{{ uniq_id }}/power';
   const powerState = document.getElementById('power_state').value;
   const payload = {'state': powerState};
   
   fetch(url, {
-    method: 'POST',
+    method: 'PUT',
     body: JSON.stringify(payload), // data can be `string` or {object}!
     headers:{
       'Content-Type': 'application/json'

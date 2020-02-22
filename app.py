@@ -25,8 +25,15 @@ def create_vm():
     return render_template('create.html', title='CREATE VM')
 
 
-@app.route('/v1/add', methods=['POST'])
-def add_vm():
+""" Read Machines """
+@app.route('/v1/machine', methods=['GET'])
+def rest_read_vms():
+    return jsonify(connect.app_top())
+
+
+""" Create Machine """
+@app.route('/v1/machine', methods=['POST'])
+def rest_create_vm():
     """
     curl -s -XPOST -d '{"name":"myvm","cpu":1,"ram":500,"ssd":30,"network":"dmz","os":"ubuntu1804","user":"myadmin","password":"my12pass34word56","hostname":"myvm","tag":"foo,bar","memo":"this is memo"}'  "http://192.168.100.3:3000/v1/add"
     """
@@ -49,6 +56,30 @@ def add_vm():
         "memo": payload.get('memo'),
     }
     return jsonify(payload)
+
+
+""" Read a Machine """
+@app.route('/v1/machine/<string:uniq_id>', methods=['GET'])
+def rest_read_vm(uniq_id):
+    uniq_id_safe = escape(uniq_id)
+    return jsonify(connect.app_detail(uniq_id))
+
+
+""" Update Machine Power"""
+@app.route('/v1/machine/<string:uniq_id>/power', methods=['PUT'])
+def rest_update_vm_power(uniq_id):
+    """
+    curl -s -XPUT-d '{"state": "on"}'  "http://192.168.100.3:3000/v1/power/jasmine|38"
+    """
+    # Parse Request
+    req_data = request.get_data()
+    req_txt = req_data.decode('utf-8')
+    payload = json.loads(req_txt)
+    # Get Request status
+    power_state = payload.get('state')
+    # Change status
+    result = connect.app_set_power(uniq_id, power_state)
+    return jsonify({"status": "ok", "detail": result})
 
 
 @app.route('/v1/power/<string:uniq_id>', methods=['POST'])
