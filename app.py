@@ -5,7 +5,7 @@ import connect
 
 
 app = Flask(__name__)
-app.config['JSON_AS_ASCII'] = False  # JSONでの日本語文字化け対策
+app.config['JSON_AS_ASCII'] = False # JSONでの日本語文字化け対策
 # app.jinja_env.filters['resolve_esxi_addr'] = lambda host: connect.app_resolve_esxi_addr(host)
 
 
@@ -70,22 +70,6 @@ def rest_read_vm(uniq_id):
 def rest_update_vm_power(uniq_id):
     """
     curl -s -XPUT-d '{"state": "on"}'  "http://192.168.100.3:3000/v1/power/jasmine|38"
-    """
-    # Parse Request
-    req_data = request.get_data()
-    req_txt = req_data.decode('utf-8')
-    payload = json.loads(req_txt)
-    # Get Request status
-    power_state = payload.get('state')
-    # Change status
-    result = connect.app_set_power(uniq_id, power_state)
-    return jsonify({"status": "ok", "detail": result})
-
-
-@app.route('/v1/power/<string:uniq_id>', methods=['POST'])
-def set_power(uniq_id):
-    """
-    curl -s -XPOST -d '{"state": "on"}'  "http://192.168.100.3:3000/v1/power/jasmine|38"
     """
     # Parse Request
     req_data = request.get_data()
