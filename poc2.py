@@ -20,11 +20,13 @@ client.connect(
     username=hostinfo.get('username'),
     password=hostinfo.get('password')
 )
-cmd = """
+import sys
+vm_name = sys.argv[1]
+cmd = f"""
 ram=1024
 cpu=1
 ssd=20G
-vm_name=hoge025
+vm_name={vm_name}
 vmid=`vim-cmd vmsvc/createdummyvm $vm_name /vmfs/volumes/StoreNAS-Jasmine/`
 
 cd /vmfs/volumes/StoreNAS-Jasmine/$vm_name
