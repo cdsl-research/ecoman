@@ -23,9 +23,9 @@ client.connect(
 import sys
 vm_name = sys.argv[1]
 cmd = f"""
-ram=1024
+ram=4096
 cpu=1
-ssd=20G
+ssd=80G
 vm_name={vm_name}
 vmid=`vim-cmd vmsvc/createdummyvm $vm_name /vmfs/volumes/StoreNAS-Jasmine/`
 
@@ -38,7 +38,7 @@ memsize = "$ram"
 numvcpus = "$cpu"
 ethernet0.addressType = "generated"
 ethernet0.generatedAddressOffset = "0"
-ethernet0.networkName = "DMZ-Network"
+ethernet0.networkName = "private"
 ethernet0.pciSlotNumber = "160"
 ethernet0.present = "TRUE"
 ethernet0.uptCompatibility = "TRUE"
