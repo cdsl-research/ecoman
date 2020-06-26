@@ -31,22 +31,26 @@ def get_esxi_hosts():
 def get_vms_list():
     import re
     import json
+
+    def parse_info_tag(dat):
+        vm_memo = re.search(r'<info>.+</info>', dat['comment'], flags=re.DOTALL)
+        # <info>xxx</info>を含む
+        if vm_memo is not None:
+            json_str = vm_memo.group().strip('<info>').strip('</info>').strip('\n')
+            # print(json_str)
+            dat['memo'] = json.loads(json_str)
+            # comment属性の<info>xxx</info>を取り除く
+            dat['comment'] = re.sub(r'<info>.*</info>', '', dat['comment'], flags=re.DOTALL)
+
     # VM情報一覧の2行目～を取得(ラベルを除外)
     stdin, stdout, stderr = client.exec_command('vim-cmd vmsvc/getallvms')
     vm_info = []
     for line in stdout.readlines():
         # 数字から始まる行
         if re.match(r'^\d+', line):
-            # 前の要素を更新
+            # 前の要素のcommentを組み立て
             if len(vm_info) > 0:
-                vm_memo = re.search(r'<info>.+</info>', vm_info[-1]['comment'], flags=re.DOTALL)
-                # <info>xxx</info>を含む
-                if vm_memo is not None:
-                    json_str = vm_memo.group().strip('<info>').strip('</info>').strip('\n')
-                    # print(json_str)
-                    vm_info[-1]['memo'] = json.loads(json_str)
-                    # comment属性の<info>xxx</info>を取り除く
-                    vm_info[-1]['comment'] = re.sub(r'<info>.*</info>', '', vm_info[-1]['comment'], flags=re.DOTALL)
+                parse_info_tag(vm_info[-1])
 
             dat = line.strip('\n').split()
             vm_info.append({
@@ -59,11 +63,17 @@ def get_vms_list():
                 'comment': ' '.join(dat[6:]),
                 'memo': None
             })
+
+        # Vmidから始まる行
         elif line.startswith("Vmid"):
             continue
+
+        # その他の行(コメント)
         else:
             vm_info[-1]['comment'] += line
 
+    # 末尾の要素の <info> </info> を処理
+    parse_info_tag(vm_info[-1])
     return vm_info
 
 
@@ -162,12 +172,16 @@ def set_vm_power(esxi_hostname, vmid, power_state):
 def app_top():
     vm_formated_info = []
     for hostname,param in get_esxi_hosts().items():
-        # VMにSSH接続
-        client.connect(
-            hostname=param.get('addr'),
-            username=param.get('username'),
-            password=param.get('password')
-        )
+        try:
+            # VMにSSH接続
+            client.connect(
+                hostname=param.get('addr'),
+                username=param.get('username'),
+                password=param.get('password')
+            )
+        except paramiko.ssh_exception.SSHException as e:
+            print(e)
+
         # VM一覧を結合
         vm_list = get_vms_list()
         vm_power = get_vms_power()
