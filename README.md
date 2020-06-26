@@ -1,9 +1,19 @@
-# Kushiyaki
+# ECoMan - Easy Computer Manager
 
 ## How to run
 
+Setup venv
+
 ```
-FLASK_APP=app.py python3 -m flask run
+python3 -m venv env
+. env/bin/activate
+pip installl -r requirements.txt
+```
+
+Starting app
+
+```
+python app.py
 ```
 
 ## ESXi extend Annotation format
