@@ -1,78 +1,100 @@
 {% include "_header.html" %}
 
-<form>
-  <fieldset>
-    <legend>Hardware</legend>
 
-    <label>VM Name</label>
-    <input type='text' name='name'>
-    <br>
+<h3>Hardware</h3>
+<label>VM Name</label>
+<br>
+<input type='text' id='name'>
+<br>
 
-    <label>VM Num of CPU</label>
-    <input type='number' name='cpu' value='1' min='1' max='4'>
-    <br>
+<label>VM Num of CPU</label>
+<br>
+<input type='number' id='cpu' value='1' min='1' max='4'>
+<br>
 
-    <label>VM Memory Size</label>
-    <select name='ram'>
-      <option value='500'>500MB</option>
-      <option value='1000'>1GB</option>
-      <option value='2000'>2GB</option>
-      <option value='4000'>4GB</option>
-      <option value='8000'>8GB</option>
-    </select>
-    <br>
+<label>VM Memory Size</label>
+<br>
+<select id='ram'>
+  <option value='512'>500MB</option>
+  <option value='1024'>1GB</option>
+  <option value='2048'>2GB</option>
+  <option value='4096'>4GB</option>
+</select>
+<br>
 
-    <label>VM Storage Size</label>
-    <select name='ssd'>
-      <option value='30'>30GB</option>
-      <option value='50'>50GB</option>
-      <option value='70'>70GB</option>
-    </select>
-    <br>
+<label>VM Storage Size</label>
+<br>
+<select id='storage'>
+  <option value='30'>30GB</option>
+  <option value='50'>50GB</option>
+  <option value='70'>70GB</option>
+  <option value='100'>100GB</option>
+</select>
+<br>
 
-    <label>VM Network</label>
-    <select name='network'>
-      <option value='dmz'>DMZ</option>
-      <option value='private'>Private</option>
-    </select>
-    <br>
+<label>VM Network</label>
+<br>
+<select id='network'>
+  <option value='private'>Private</option>
+  <option value='DMZ-Network'>DMZ</option>
+</select>
+<br>
 
-    <label>VM OS</label>
-    <select name='os'>
-      <option value='ubuntu1804'>Ubuntu 18.04</option>
-      <option value='ubuntu1604'>Ubuntu 16.04</option>
-      <option value='centos7'>CentOS 7</option>
-    </select>
-    <br>
-  </fieldset>
+<label>ESXi Node</label>
+<br>
+<select id='esxi_node'>
+  <option value='jasmine'>Jasmine</option>
+  <option value='mint'>Mint</option>
+</select>
+<br>
 
-  <fieldset>
-    <legend>Software</legend>
+<!-- select from exist tags -->
+<label>Tag(separate comma)</label>
+<br>
+<input type='text' id='tag'>
+<br>
 
-    <label>Admin User</label>
-    <input type='text' name='user'>
-    <br>
+<label>Memo</label>
+<br>
+<input type='text' id='memo'>
+<br>
 
-    <label>Admin User Password</label>
-    <input type='password' name='password'>
-    <br>
+<button id='commit'>Create</button>
 
-    <label>Hostname</label>
-    <input type='text' name='hostname'>
-    <br>
+<div id='status'></div>
 
-    <!-- select from exist tags -->
-    <label>Tag(separate comma)</label>
-    <input type='text' name='tag'>
-    <br>
+<script>
+let createMachine = function() {
+  const url = '/v1/machine';
+  const params = ["name", "cpu", "ram", "storage", "network", "esxi_node", "tag", "memo"];
+  const payloads = {};
+  params.forEach(param => {
+    payloads[param] = document.getElementById(param).value;
+  })
+  payloads['tag'] = payloads['tag'].split(",").map(item => {
+    return item.trim();
+  });
+  console.log(payloads);
 
-    <label>Memo</label>
-    <textarea></textarea>
-    <br>
+  fetch(url, {
+    method: 'POST',
+    body: JSON.stringify(payloads), // data can be `string` or {object}!
+    headers:{
+      'Content-Type': 'application/json'
+    }
+  }).then(res => res.json())
+    .then(response => {
+      console.log('Success:', JSON.stringify(response));
+      document.getElementById('status').innerHTML = 'Success: ' + response['status'];
+    })
+    .catch(error => {
+      console.error('Error:', error)
+      document.getElementById('status').innerHTML = error;
+    });
+}
 
-  </fieldset>
-
-  <button>Create</button>
-</form>
+let commitButton = document.getElementById('commit');
+commitButton.addEventListener("click", createMachine, false);
+</script>
 
 {% include "_footer.html" %}
