@@ -52,7 +52,9 @@ def rest_create_vm():
         "cpu": payload.get('cpu'),
         "storage": payload.get('storage'),
         "network": payload.get('network'),
-        "esxi_node": payload.get('esxi_node')
+        "esxi_node": payload.get('esxi_node'),
+        "comment": payload.get('comment'),
+        "tags": payload.get('tags')
     }
     result = connect.api_create_vm(vm_spec)
     if result.get('error') is None:

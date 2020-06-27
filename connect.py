@@ -178,7 +178,10 @@ def create_vm(
         vm_network_name = "private", 
         vm_store_path = "/vmfs/volumes/StoreNAS-Jasmine/",
         vm_iso_path = "/vmfs/volumes/StoreNAS-Public/os-images/custom/ubuntu-18.04.4-server-amd64-preseed.20190824.040414.iso",
-        esxi_node_name = "jasmine"
+        esxi_node_name = "jasmine",
+        author = "unknown",
+        tags = [],
+        comment = ""
     ):
 
     hostinfo = get_esxi_hosts().get(esxi_node_name)
@@ -188,6 +191,18 @@ def create_vm(
         password=hostinfo.get('password')
     )
 
+    USERNAME = "cdsl"
+    PASSWORD = "tutcdsl2019"
+    CONCAT_TAGS = ', '.join([f"|22{t}|22" for t in tags])
+
+    import datetime
+    dt_now = datetime.datetime.now()
+    CUR_DATE = dt_now.strftime('%Y-%m-%d %H:%M:%S')
+
+    concat_payload = comment + "|0A<info>|0A{|0A  |22author|22: |22" + author \
+            + "|22,|0A  |22user|22: |22" + USERNAME + "|22,|0A  |22password|22: |22" \
+            + PASSWORD + "|22,|0A  |22created_at|22: |22" + CUR_DATE + "|22,|0A  " \
+            + "|22tag|22: [ " + CONCAT_TAGS + " ]|0A}|0A</info>"
     # catコマンドのインデントは変えると動かなくなる
     cmd = f"""
     vmid=`vim-cmd vmsvc/createdummyvm {vm_name} {vm_store_path}`
@@ -213,6 +228,7 @@ sata0.present = "TRUE"
 sata0:0.deviceType = "cdrom-image"
 sata0:0.fileName = "{vm_iso_path}"
 sata0:0.present = "TRUE"
+annotation = "{concat_payload}"
 EOF
 
     rm {vm_name}-flat.vmdk  {vm_name}.vmdk
@@ -310,8 +326,21 @@ def api_create_vm(specs):
     # ISO Path
     vm_iso_path = "/vmfs/volumes/StoreNAS-Public/os-images/custom/ubuntu-18.04.4-server-amd64-preseed.20190824.040414.iso"
 
+    # Tags
+    if specs.get('tags'):
+        tags = specs.get('tags')
+    else:
+        tags = []
+
+    # Comment
+    if specs.get('comment') and len(specs.get('comment')) > 0:
+        comment = specs.get('comment')
+    else:
+        comment = ""
+
     stdout, stderr = create_vm(vm_name, vm_ram_mb, vm_cpu, vm_storage_gb, 
-            vm_network_name, vm_store_path, vm_iso_path, esxi_node_name)
+            vm_network_name, vm_store_path, vm_iso_path, esxi_node_name,
+            "anonymous", tags, comment)
     stdout_lines = stdout.readlines()
     stderr_lines = stderr.readlines()
     
