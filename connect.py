@@ -289,19 +289,19 @@ def api_create_vm(specs):
         vm_name = 'example-'+str(random.randint(100, 999))
 
     # RAM
-    if specs.get('ram') and specs.get('ram') >= 512:
+    if specs.get('ram') and int(specs.get('ram')) >= 512:
         vm_ram_mb = int(specs.get('ram'))
     else:
         vm_ram_mb = 512
 
     # CPU
-    if specs.get('cpu') and specs.get('cpu') >= 1:
+    if specs.get('cpu') and int(specs.get('cpu')) >= 1:
         vm_cpu = int(specs.get('cpu'))
     else:
         vm_cpu = 1
 
     # Storage
-    if specs.get('storage') and specs.get('storage') >= 30:
+    if specs.get('storage') and int(specs.get('storage')) >= 30:
         vm_storage_gb = int(specs.get('storage'))
     else:
         vm_storage_gb = 30
