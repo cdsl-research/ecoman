@@ -54,9 +54,11 @@ vim-cmd vmsvc/reload $vmid
 vim-cmd vmsvc/power.on $vmid
 exit
 """
-stdin, stdout, stderr = client.exec_command(cmd)
-print(stdout.readlines())
-print(stderr.readlines())
-print("Finish")
+print(cmd)
+
+# stdin, stdout, stderr = client.exec_command(cmd)
+# print(stdout.readlines())
+# print(stderr.readlines())
+# print("Finish")
 
 client.close()
