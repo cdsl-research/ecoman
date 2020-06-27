@@ -169,6 +169,63 @@ def set_vm_power(esxi_hostname, vmid, power_state):
     return stdout.read().decode().strip('\n')
 
 
+""" VMを作成 """
+def create_vm(
+        vm_name = 'ecoman-example3',
+        vm_ram_mb = 512, 
+        vm_cpu = 1, 
+        vm_storage_gb = 30, 
+        vm_network_name = "private", 
+        vm_store_path = "/vmfs/volumes/StoreNAS-Jasmine/",
+        vm_iso_path = "/vmfs/volumes/StoreNAS-Public/os-images/custom/ubuntu-18.04.4-server-amd64-preseed.20190824.040414.iso",
+        esxi_node_name = "jasmine"
+    ):
+
+    hostinfo = get_esxi_hosts().get(esxi_node_name)
+    client.connect(
+        hostname=hostinfo.get('addr'),
+        username=hostinfo.get('username'),
+        password=hostinfo.get('password')
+    )
+
+    # catコマンドのインデントは変えると動かなくなる
+    cmd = f"""
+    vmid=`vim-cmd vmsvc/createdummyvm {vm_name} {vm_store_path}`
+    cd {vm_store_path}{vm_name}
+    
+    sed -i -e '/^guestOS =/d' {vm_name}.vmx
+    cat << EOF >> {vm_name}.vmx
+guestOS = "ubuntu-64"
+memsize = "{vm_ram_mb}"
+numvcpus = "{vm_cpu}"
+ethernet0.addressType = "generated"
+ethernet0.generatedAddressOffset = "0"
+ethernet0.networkName = "{vm_network_name}"
+ethernet0.pciSlotNumber = "160"
+ethernet0.present = "TRUE"
+ethernet0.uptCompatibility = "TRUE"
+ethernet0.virtualDev = "vmxnet3"
+ethernet0.wakeOnPcktRcv = "TRUE"
+powerType.powerOff = "default"
+powerType.reset = "default"
+powerType.suspend = "soft"
+sata0.present = "TRUE"
+sata0:0.deviceType = "cdrom-image"
+sata0:0.fileName = "{vm_iso_path}"
+sata0:0.present = "TRUE"
+EOF
+
+    rm {vm_name}-flat.vmdk  {vm_name}.vmdk
+    vmkfstools --createvirtualdisk {vm_storage_gb}G -d thin {vm_name}.vmdk
+    
+    vim-cmd vmsvc/reload $vmid
+    vim-cmd vmsvc/power.on $vmid
+    """
+    # print(cmd)
+    stdin, stdout, stderr = client.exec_command(cmd)
+    return stdout, stderr
+
+
 def app_top():
     vm_formated_info = []
     for hostname,param in get_esxi_hosts().items():
@@ -207,10 +264,65 @@ def app_set_power(uniq_id, power_state):
     hostname, vmid = uniq_id.split('|')
     return set_vm_power(hostname, vmid, power_state)
 
+def api_create_vm(specs):
+    # NAME
+    if specs.get('name'):
+        vm_name = specs.get('name')
+    else:
+        import random
+        vm_name = 'example-'+str(random.randint(100, 999))
+
+    # RAM
+    if specs.get('ram') and specs.get('ram') >= 512:
+        vm_ram_mb = int(specs.get('ram'))
+    else:
+        vm_ram_mb = 512
+
+    # CPU
+    if specs.get('cpu') and specs.get('cpu') >= 1:
+        vm_cpu = int(specs.get('cpu'))
+    else:
+        vm_cpu = 1
+
+    # Storage
+    if specs.get('storage') and specs.get('storage') >= 30:
+        vm_storage_gb = int(specs.get('storage'))
+    else:
+        vm_storage_gb = 30
+
+    # Network
+    if specs.get('network') and specs.get('network') in ('private', 'DMZ-Network'):
+        vm_network_name = specs.get('network')
+    else:
+        vm_network_name = "private"
+
+    # ESXi Node
+    if specs.get('esxi_node') and specs.get('esxi_node') in ('jasmine', 'mint'):
+        esxi_node_name = specs.get('esxi_node')
+    else:
+        esxi_node_name = "jasmine"
+
+    # StorePath
+    store_path_node = str.capitalize(esxi_node_name)
+    vm_store_path = f"/vmfs/volumes/StoreNAS-{store_path_node}/"
+    # vm_store_path = "/vmfs/volumes/StorePCIe/"
+
+    # ISO Path
+    vm_iso_path = "/vmfs/volumes/StoreNAS-Public/os-images/custom/ubuntu-18.04.4-server-amd64-preseed.20190824.040414.iso"
+
+    stdout, stderr = create_vm(vm_name, vm_ram_mb, vm_cpu, vm_storage_gb, 
+            vm_network_name, vm_store_path, vm_iso_path, esxi_node_name)
+    stdout_lines = stdout.readlines()
+    stderr_lines = stderr.readlines()
+    
+    if len(stderr_lines) > 0:
+        return {"error": ' '.join([line.strip() for line in stderr_lines])}
+    else:
+        return {"status": ' '.join([line.strip() for line in stdout_lines])}
+    
 
 def main():
-    for a in app_top():
-        print(a['uniq_id'])
+    pass
 
 
 if __name__ == '__main__':

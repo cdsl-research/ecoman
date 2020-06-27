@@ -35,27 +35,32 @@ def rest_read_vms():
 @app.route('/v1/machine', methods=['POST'])
 def rest_create_vm():
     """
-    curl -s -XPOST -d '{"name":"myvm","cpu":1,"ram":500,"ssd":30,"network":"dmz","os":"ubuntu1804","user":"myadmin","password":"my12pass34word56","hostname":"myvm","tag":"foo,bar","memo":"this is memo"}'  "http://192.168.100.3:3000/v1/add"
+    curl -s -XPOST -d '{"name":"myvm", "cpu":1, "ram":500, "ssd":30, "network":"dmz",
+            "os":"ubuntu1804", "user":"myadmin", "password":"my12pass34word56",
+            "hostname":"myvm","tag":"foo,bar","memo":"this is memo"}'
+            "http://192.168.100.3:3000/v1/add"
     """
     # Parse Request
     req_data = request.get_data()
     req_txt = req_data.decode('utf-8')
     # Get Request body
     payload = json.loads(req_txt)
+    # print("payload= ", payload)
     vm_spec = {
         "name": payload.get('name'),
-        "cpu": payload.get('cpu'),
         "ram": payload.get('ram'),
-        "ssd": payload.get('ssd'),
+        "cpu": payload.get('cpu'),
+        "storage": payload.get('storage'),
         "network": payload.get('network'),
-        "os": payload.get('os'),
-        "user": payload.get('user'),
-        "password": payload.get('password'),
-        "hostname": payload.get('hostname'),
-        "tag": payload.get('tag'),
-        "memo": payload.get('memo'),
+        "esxi_node": payload.get('esxi_node')
     }
-    return jsonify(payload)
+    result = connect.api_create_vm(vm_spec)
+    if result.get('error') is None:
+        # correct
+        return jsonify(result), 201
+    else:
+        # incorrect
+        return jsonify(result), 400
 
 
 """ Read a Machine """
@@ -65,7 +70,7 @@ def rest_read_vm(uniq_id):
     return jsonify(connect.app_detail(uniq_id))
 
 
-""" Update Machine Power"""
+""" Update Machine Power """
 @app.route('/v1/machine/<string:uniq_id>/power', methods=['PUT'])
 def rest_update_vm_power(uniq_id):
     """
