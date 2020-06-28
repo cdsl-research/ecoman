@@ -1,31 +1,37 @@
 {% include "_header.html" %}
 
-<h2>Power:</h2>
+<h3>Power</h2>
 
-<table border=1>
+<table class="table">
 <tr>
-  <th>Current Status</th>
+  <td>Current Status</td>
   <td><span id="current_power">{{ detail.get('vim.vm.Summary').get('runtime').get('powerState') | default('') }}</span></td>
 </tr>
 <tr>
-  <th>Change Status</th>
+  <td>Change Status</td>
   <td>
-    <select id="power_state">
-      <option value="on">ON</option>
-      <option value="off">OFF</option>
-      <option value="reset">RESET</option>
-      <option value="reboot">REBOOT</option>
-      <option value="shutdown">SHUTDOWN</option>
-      <option value="suspend">SUSPEND</option>
-    </select>
-    <button id="commit">Commit</button>
+    <div class="input-group">
+      <div class="form-group">
+        <select class="form-select" id="power_state">
+          <option value="on">ON</option>
+          <option value="off">OFF</option>
+          <option value="reset">RESET</option>
+          <option value="reboot">REBOOT</option>
+          <option value="shutdown">SHUTDOWN</option>
+          <option value="suspend">SUSPEND</option>
+        </select>
+      </div>
+      <button class="btn btn-primary" id="commit">Commit</button>
+    </div>
     <p id="message"></p>
   </td>
 </tr>
 </table>
 
-<h2>Info:</h2>
-<table border=1>
+<!--
+<h3>Info</h3>
+
+<table class="table">
 <tr>
   <td>SSH Command</td>
   <td>ssh {{ detail.info.user }}@{{ detail.get('vim.vm.Summary').guest.hostName }}</td>
@@ -54,6 +60,15 @@
   <td>HostName</td>
   <td>{{ detail.get('vim.vm.Summary').guest.hostName }}</td>
 </tr>
+-->
+
+<h3>Detail</h3>
+
+<table class="table">
+<tr>
+  <td>VM Name</td>
+  <td><b>{{ detail.get('vim.vm.Summary').config.name }}</b></td>
+</tr>
 <tr>
   <td>IP Address</td>
   <td>{{ detail.get('vim.vm.Summary').guest.ipAddress }}</td>
@@ -61,10 +76,7 @@
 <tr>
   <td>VMware Tools Status</td>
   <td>{{ detail.get('vim.vm.Summary').guest.toolsStatus }}</td>
-</table>
-
-<h2>Detail:</h2>
-<table border=1>
+</tr>
 <tr>
   <td>VM Health Status</td>
   <td>{{ detail.get('vim.vm.Summary').overallStatus }}</td>
@@ -76,10 +88,6 @@
 <tr>
   <td>Max CPU Usage</td>
   <td>{{ detail.get('vim.vm.Summary').runtime.maxCpuUsage }}</td>
-</tr>
-<tr>
-  <td>VM Name</td>
-  <td><b>{{ detail.get('vim.vm.Summary').config.name }}</b></td>
 </tr>
 <tr>
   <td>VM Path</td>
@@ -110,6 +118,12 @@
   <td>{{ detail.get('vim.vm.Summary').config.guestFullName }}</td>
 </tr>
 </table>
+
+<style>
+.table {
+  max-width: 600px;
+}
+</style>
 
 <script>
 let setPower = function() {

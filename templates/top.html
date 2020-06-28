@@ -18,7 +18,15 @@
     <tbody>
     {% for machine in machines %}
       <tr>
-        <td>{{ machine.power | upper() }}</td>
+        <td>
+          {% if machine.power | upper() == "ON" %}
+	    <span class="label label-success">{{ machine.power | upper() }}</span>
+	  {% elif machine.power | upper() == "OFF" %}
+	    <span class="label label-error">{{ machine.power | upper() }}</span>
+	  {% else %}
+	    <span class="label label-warning">{{ machine.power | upper() }}</span>
+	  {% endif %}
+        </td>
         <td><a href="https://{{ machine.esxi_addr }}/ui/#/host/vms/{{ machine.id }}" target="_blank">{{ machine.uniq_id }}</a></td>
         <td><a href="/machine/{{ machine.uniq_id }}">{{ machine.name }}</a></td>
         <td>{{ machine.datastore }}</td>
