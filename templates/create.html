@@ -1,71 +1,137 @@
 {% include "_header.html" %}
 
-
 <h3>Hardware</h3>
-<label>VM Name</label>
-<br>
-<input type='text' id='name'>
-<br>
 
-<label>VM Num of CPU</label>
-<br>
-<input type='number' id='cpu' value='1' min='1' max='4'>
-<br>
+<form class="form-horizontal">
+  <div class="form-group">
+    <div class="col-3 col-sm-12">
+      <label class="form-label" for="name">VM Name</label>
+    </div>
+    <div class="col-9 col-sm-12">
+      <input class="form-input" type="text" id="name" placeholder="koyama-http">
+    </div>
+  </div>
 
-<label>VM Memory Size</label>
-<br>
-<select id='ram'>
-  <option value='512'>500MB</option>
-  <option value='1024'>1GB</option>
-  <option value='2048'>2GB</option>
-  <option value='4096'>4GB</option>
-</select>
-<br>
+  <div class="form-group">
+    <div class="col-3 col-sm-12">
+      <label class="form-label" for="cpu">VM Num of CPU</label>
+    </div>
+    <div class="col-9 col-sm-12">
+      <input class="form-input" type="number" id="cpu" placeholder="1" min="1" max="4" value="1">
+    </div>
+  </div>
 
-<label>VM Storage Size</label>
-<br>
-<select id='storage'>
-  <option value='30'>30GB</option>
-  <option value='50'>50GB</option>
-  <option value='70'>70GB</option>
-  <option value='100'>100GB</option>
-</select>
-<br>
+  <div class="form-group">
+    <div class="col-3 col-sm-12">
+      <label class="form-label" for="ram">VM Memory Size</label>
+    </div>
+    <div class="col-9 col-sm-12">
+      <select id="ram" class="form-select">
+        <option value='512'>500MB</option>
+        <option value='1024'>1GB</option>
+        <option value='2048'>2GB</option>
+        <option value='4096'>4GB</option>
+      </select>
+    </div>
+  </div>
 
-<label>VM Network</label>
-<br>
-<select id='network'>
-  <option value='private'>Private</option>
-  <option value='DMZ-Network'>DMZ</option>
-</select>
-<br>
+  <div class="form-group">
+    <div class="col-3 col-sm-12">
+      <label class="form-label" for="storage">VM Storage Size</label>
+    </div>
+    <div class="col-9 col-sm-12">
+      <select id="storage" class="form-select">
+        <option value='30'>30GB</option>
+        <option value='50'>50GB</option>
+        <option value='70'>70GB</option>
+        <option value='100'>100GB</option>
+      </select>
+    </div>
+  </div>
 
-<label>ESXi Node</label>
-<br>
-<select id='esxi_node'>
-  <option value='jasmine'>Jasmine</option>
-  <option value='mint'>Mint</option>
-</select>
-<br>
+  <div class="form-group">
+    <div class="col-3 col-sm-12">
+      <label class="form-label" for="network">VM Network</label>
+    </div>
+    <div class="col-9 col-sm-12">
+      <select id="network" class="form-select">
+        <option value='private'>Private</option>
+        <option value='DMZ-Network' disabled>DMZ</option>
+      </select>
+    </div>
+  </div>
 
-<!-- select from exist tags -->
-<label>Tag(separate comma)</label>
-<br>
-<input type='text' id='tag'>
-<br>
+  <div class="form-group">
+    <div class="col-3 col-sm-12">
+      <label class="form-label" for="esxi_node">ESXi Node</label>
+    </div>
+    <div class="col-9 col-sm-12">
+      <select id="esxi_node" class="form-select">
+        <option value="jasmine">Jasmine</option>
+        <option value="mint">Mint</option>
+      </select>
+    </div>
+  </div>
 
-<label>Memo</label>
-<br>
-<input type='text' id='memo'>
-<br>
+  <div class="form-group">
+    <div class="col-3 col-sm-12">
+	    <label class="form-label" for="tag">Tags</label>
+    </div>
+    <div class="col-9 col-sm-12">
+      <input class="form-input" type="text" id="tag" placeholder="koyama, research, experiment">
+    </div>
+  </div>
 
-<button id='commit'>Create</button>
+  <div class="form-group">
+    <div class="col-3 col-sm-12">
+      <label class="form-label" for="memo">Memo</label>
+    </div>
+    <div class="col-9 col-sm-12">
+      <input id="memo" class="form-input" type="text" placeholder="My experimental machine for performance evaluation">
+    </div>
+  </div>
+  
+  <div class="toast" id="msgbox">
+    <button type="button" id="close" class="btn btn-clear float-right"></button>
+    <p id="status"></p>
+  </div>
 
-<div id='status'></div>
+  <div class="form-group">
+    <button type="button" id="commit" class="btn btn-primary">Create</button>
+  </div>
+</div>
+
+<style>
+#msgbox {
+  display: none;
+  margin-bottom: .4rem;
+}
+
+</style>
 
 <script>
-let createMachine = function() {
-  const url = '/v1/machine';
+setLoading = (is_display) => {
+  if (is_display) {
+    document.getElementById("commit").classList.add("loading");
+  } else {
+    document.getElementById("commit").classList.remove("loading");
+  }
+}
+
+setMsgbox = (message, is_success) => {
+  if (message) {
+    document.getElementById("msgbox").style.display = "block";
+    document.getElementById("status").innerHTML = message;
+    document.getElementById('msgbox').classList.remove(is_success ? "toast-error" : "toast-success");
+    document.getElementById('msgbox').classList.add(is_success ? "toast-success" : "toast-error");
+  } else {
+    document.getElementById("msgbox").style.display = "none";
+    document.getElementById("status").innerHTML = "";
+  }
+}
+
+createMachine = () => {
+  const url = '/v1/machine2';
   const params = ["name", "cpu", "ram", "storage", "network", "esxi_node", "tag", "memo"];
   const payloads = {};
   params.forEach(param => {
@@ -74,7 +140,7 @@ let createMachine = function() {
   payloads['tag'] = payloads['tag'].split(",").map(item => {
     return item.trim();
   });
-  console.log(payloads);
+  // console.log(payloads);
 
   fetch(url, {
     method: 'POST',
@@ -85,16 +151,23 @@ let createMachine = function() {
   }).then(res => res.json())
     .then(response => {
       console.log('Success:', JSON.stringify(response));
-      document.getElementById('status').innerHTML = 'Success: ' + response['status'];
+      setMsgbox('Success: ' + response['status'], true);
+      setLoading(false);
     })
     .catch(error => {
       console.error('Error:', error)
-      document.getElementById('status').innerHTML = error;
+      setMsgbox("Fail: " + error, false);
+      setLoading(false);
     });
 }
 
 let commitButton = document.getElementById('commit');
 commitButton.addEventListener("click", createMachine, false);
+
+let closeButton = document.getElementById('close');
+closeButton.addEventListener("click", () => {
+  setMsgbox(false);
+}, false);
 </script>
 
 {% include "_footer.html" %}
