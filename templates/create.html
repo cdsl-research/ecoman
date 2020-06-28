@@ -131,7 +131,7 @@ setMsgbox = (message, is_success) => {
 }
 
 createMachine = () => {
-  const url = '/v1/machine2';
+  const url = '/v1/machine';
   const params = ["name", "cpu", "ram", "storage", "network", "esxi_node", "tag", "memo"];
   const payloads = {};
   params.forEach(param => {
