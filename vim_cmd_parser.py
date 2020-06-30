@@ -113,7 +113,8 @@ def parser(content):
 
         else:
             # print(' '*8, '\t', l2)
-            print('Fail to parse:', l2)
+            # print('Fail to parse:', l2)
+            pass
 
     return _params2
 
