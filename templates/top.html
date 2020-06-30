@@ -33,8 +33,8 @@
         <td>{{ machine.guest_os }}</td>
         <td>{{ machine.comment }}</td>
         <td>{{ machine.memo.author | default('') }}</td>
-	<td>{{ machine.memo.user | default('') }}</td>
-	<td>{{ machine.memo.password| default('') }}</td>
+	<!-- <td>{{ machine.memo.user | default('') }}</td> -->
+	<!-- <td>{{ machine.memo.password| default('') }}</td> -->
         <td>{{ machine.memo.created_at | default('') }}</td>
         <td>{{ ', '.join(machine.memo.tag) | default('') }}</td>
       </tr>
