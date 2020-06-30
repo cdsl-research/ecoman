@@ -45,7 +45,7 @@ def rest_create_vm():
     req_txt = req_data.decode('utf-8')
     # Get Request body
     payload = json.loads(req_txt)
-    # print("payload= ", payload)
+    # print(payload)
     vm_spec = {
         "name": payload.get('name'),
         "ram": payload.get('ram'),
@@ -57,6 +57,7 @@ def rest_create_vm():
         "tags": payload.get('tags'),
         "author": request.headers.get('X-Forwarded-Email')
     }
+    # return jsonify([]), 201
     result = connect.api_create_vm(vm_spec)
     if result.get('error') is None:
         # correct
@@ -91,4 +92,4 @@ def rest_update_vm_power(uniq_id):
 
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=3000)
+    app.run(debug=True, host='127.0.0.1', port=3000)

@@ -203,6 +203,7 @@ def create_vm(
             + "|22,|0A  |22user|22: |22" + USERNAME + "|22,|0A  |22password|22: |22" \
             + PASSWORD + "|22,|0A  |22created_at|22: |22" + CUR_DATE + "|22,|0A  " \
             + "|22tag|22: [ " + CONCAT_TAGS + " ]|0A}|0A</info>"
+    # print("payload: ", concat_payload)
     # catコマンドのインデントは変えると動かなくなる
     cmd = f"""
     vmid=`vim-cmd vmsvc/createdummyvm {vm_name} {vm_store_path}`
