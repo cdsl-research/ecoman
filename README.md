@@ -16,30 +16,26 @@ Starting app
 python app.py
 ```
 
-## ESXi extend Annotation format
-
-It starts with `<info>` and ends with `</info>`. The example is indicated below.
+Acceess Web UI
 
 ```
-you comment
-<info>
-{
-  "author": "koyama",
-  "user": "cdsl",
-  "password": "your_password",
-  "created_at": "2020/01/01 20:03:02",
-  "archivable": "2021/01/01 10:00:00", 
-  "tag": [
-    "foo",
-    "bar"
-  ]
-}
-</info>
-your comment
+http://<your-hostname>:3000/
 ```
 
 ## Screenshot
 
-<img src="https://raw.githubusercontent.com/cdsl-research/kushiyaki/master/screenshot-list.png" width='600'>
+VM List
 
-<img src="https://raw.githubusercontent.com/cdsl-research/kushiyaki/master/screenshot-detail.png" width='600'>
+<img src="https://raw.githubusercontent.com/cdsl-research/ecoman/master/ecoman1.jpg" width="500">
+
+VM Detail
+
+<img src="https://raw.githubusercontent.com/cdsl-research/ecoman/master/ecoman2.jpg" width="500">
+
+VM Creation
+
+<img src="https://raw.githubusercontent.com/cdsl-research/ecoman/master/ecoman3.jpg" width="500">
+
+## Demo Movie
+
+[Demo Link](https://twitter.com/i/status/1277117890764828673)
