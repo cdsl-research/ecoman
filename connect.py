@@ -327,20 +327,28 @@ def api_create_vm(specs):
     vm_iso_path = "/vmfs/volumes/StoreNAS-Public/os-images/custom/ubuntu-18.04.4-server-amd64-preseed.20190824.040414.iso"
 
     # Tags
+    print("tags", specs.get('tags'))
     if specs.get('tags'):
         tags = specs.get('tags')
     else:
         tags = []
 
     # Comment
+    print("comment", specs.get('comment'))
     if specs.get('comment') and len(specs.get('comment')) > 0:
-        comment = specs.get('comment')
+        vm_comment = specs.get('comment')
     else:
         comment = ""
 
+    # Author
+    if specs.get('author') and len(specs.get('author')) > 3:
+        author = specs.get('author')
+    else:
+        author = "anonymous"
+
     stdout, stderr = create_vm(vm_name, vm_ram_mb, vm_cpu, vm_storage_gb, 
             vm_network_name, vm_store_path, vm_iso_path, esxi_node_name,
-            "anonymous", tags, comment)
+            author, tags, comment)
     stdout_lines = stdout.readlines()
     stderr_lines = stderr.readlines()
     

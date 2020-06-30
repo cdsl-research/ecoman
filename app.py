@@ -54,7 +54,8 @@ def rest_create_vm():
         "network": payload.get('network'),
         "esxi_node": payload.get('esxi_node'),
         "comment": payload.get('comment'),
-        "tags": payload.get('tags')
+        "tags": payload.get('tags'),
+        "author": request.headers.get('X-Forwarded-Email')
     }
     result = connect.api_create_vm(vm_spec)
     if result.get('error') is None:
