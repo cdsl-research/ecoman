@@ -86,19 +86,19 @@
 
   <div class="form-group">
     <div class="col-3 col-sm-12">
-	    <label class="form-label" for="tag">Tags</label>
+	    <label class="form-label" for="tags">Tags</label>
     </div>
     <div class="col-9 col-sm-12">
-      <input class="form-input" type="text" id="tag" placeholder="koyama, research, experiment">
+      <input class="form-input" type="text" id="tags" placeholder="koyama, research, experiment">
     </div>
   </div>
 
   <div class="form-group">
     <div class="col-3 col-sm-12">
-      <label class="form-label" for="memo">Memo</label>
+      <label class="form-label" for="comment">Memo</label>
     </div>
     <div class="col-9 col-sm-12">
-      <input id="memo" class="form-input" type="text" placeholder="My experimental machine for performance evaluation">
+      <input id="comment" class="form-input" type="text" placeholder="My experimental machine for performance evaluation">
     </div>
   </div>
   
@@ -153,12 +153,12 @@ createMachine = () => {
   setLoading(true);
 
   const url = '/v1/machine';
-  const params = ["name", "cpu", "ram", "storage", "network", "esxi_node", "tag", "memo"];
+  const params = ["name", "cpu", "ram", "storage", "network", "esxi_node", "tags", "comment"];
   const payloads = {};
   params.forEach(param => {
     payloads[param] = document.getElementById(param).value;
   })
-  payloads['tag'] = payloads['tag'].split(",").map(item => {
+  payloads['tags'] = payloads['tags'].split(",").map(item => {
     return item.trim();
   });
   // console.log(payloads);

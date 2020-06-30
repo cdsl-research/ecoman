@@ -328,16 +328,14 @@ def api_create_vm(specs):
     vm_iso_path = "/vmfs/volumes/StoreNAS-Public/os-images/custom/ubuntu-18.04.4-server-amd64-preseed.20190824.040414.iso"
 
     # Tags
-    print("tags", specs.get('tags'))
     if specs.get('tags'):
         tags = specs.get('tags')
     else:
         tags = []
 
     # Comment
-    print("comment", specs.get('comment'))
     if specs.get('comment') and len(specs.get('comment')) > 0:
-        vm_comment = specs.get('comment')
+        comment = specs.get('comment')
     else:
         comment = ""
 
