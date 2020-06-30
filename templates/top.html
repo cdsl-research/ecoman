@@ -36,7 +36,11 @@
 	<!-- <td>{{ machine.memo.user | default('') }}</td>
 	<td>{{ machine.memo.password| default('') }}</td> -->
         <td>{{ machine.memo.created_at | default('') }}</td>
-        <td>{{ ', '.join(machine.memo.tag) | default('') }}</td>
+	<td>
+	  {% for tg in machine.memo.tag %}
+	    <span class="label label-secondary mr-1">{{ tg | default('') }}</span>
+	  {% endfor %}
+	</td>
       </tr>
     {% endfor %}
     </tbody>
