@@ -7,22 +7,22 @@ import connect
 app = Flask(__name__)
 app.config['JSON_AS_ASCII'] = False # JSONでの日本語文字化け対策
 # app.jinja_env.filters['resolve_esxi_addr'] = lambda host: connect.app_resolve_esxi_addr(host)
-
+    
 
 @app.route('/', methods=['GET'])
 def top():
-    return render_template('top.html', title='TOP', machines=connect.app_top())
+    return render_template('top.html', title='TOP', machines=connect.app_top(), email=request.headers.get('X-Forwarded-Email'))
 
 
 @app.route('/machine/<string:uniq_id>', methods=['GET'])
 def detail(uniq_id):
     uniq_id_safe = escape(uniq_id)
-    return render_template('detail.html', title='DETAIL: '+uniq_id_safe, uniq_id=uniq_id_safe, detail=connect.app_detail(uniq_id))
+    return render_template('detail.html', title='DETAIL: '+uniq_id_safe, uniq_id=uniq_id_safe, detail=connect.app_detail(uniq_id), email=request.headers.get('X-Forwarded-Email'))
 
 
 @app.route('/create', methods=['GET'])
 def create_vm():
-    return render_template('create.html', title='CREATE VM')
+    return render_template('create.html', title='CREATE VM', email=request.headers.get('X-Forwarded-Email'))
 
 
 """ Read Machines """
@@ -55,7 +55,7 @@ def rest_create_vm():
         "esxi_node": payload.get('esxi_node'),
         "comment": payload.get('comment'),
         "tags": payload.get('tags'),
-        "author": request.headers.get('X-Forwarded-Email')
+        "author": request.headers.get('X-Forwarded-Email') if request.headers.get('X-Forwarded-Email') else "Anonymous"
     }
     # return jsonify([]), 201
     result = connect.api_create_vm(vm_spec)
@@ -92,4 +92,4 @@ def rest_update_vm_power(uniq_id):
 
 
 if __name__ == '__main__':
-    app.run(debug=True, host='127.0.0.1', port=3000)
+    app.run(debug=True, host='127.0.0.1', port=3300)
