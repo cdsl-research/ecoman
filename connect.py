@@ -103,6 +103,23 @@ def get_vms_power():
     return result
 
 
+""" VMのIPアドレスのリストを取得 """
+def get_vms_ip():
+    _, stdout, stderr = client.exec_command(r"""
+    for id in `vim-cmd vmsvc/getallvms | grep '^[0-9]\+' | awk '{print $1}'`
+    do
+      vim-cmd vmsvc/get.summary $id | grep ipAddress | grep -o \"[0-9a-f:\.]\\+\" | sed "s/\"//g;s/^/$id|/g" &
+    done
+    """)
+
+    result = {}
+    for line in stdout.readlines():
+        vmid, ipaddr = line.split('|')
+        result[vmid] = ipaddr
+
+    return result
+
+
 """ 個別VMの詳細を取得 """
 def get_vm_detail(esxi_hostname, vmid):
     hostinfo = get_esxi_hosts().get(esxi_hostname)
