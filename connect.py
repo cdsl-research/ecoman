@@ -276,6 +276,7 @@ def app_top():
         # VM一覧を結合
         vm_list = get_vms_list()
         vm_power = get_vms_power()
+        vm_ip = get_vms_ip()
         for vm in vm_list:
             vm['uniq_id'] = hostname + '|' + vm.get('id')
             vm['esxi_host'] = hostname
@@ -284,6 +285,10 @@ def app_top():
                 vm['power'] = vm_power[vm['id']]
             except KeyError:
                 vm['power'] = 'error'
+            try:
+                vm['ipaddr'] = vm_ip[vm['id']]
+            except KeyError:
+                vm['ipaddr'] = 'unknown'
         vm_formated_info.extend(vm_list)
     
     return vm_formated_info
