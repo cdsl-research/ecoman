@@ -80,7 +80,7 @@ def get_vms_list():
 """ VMの電源状態のリストを取得 """
 def get_vms_power():
     # VMの電源一覧を取得
-    stdin, stdout, stderr = client.exec_command("""
+    _, stdout, stderr = client.exec_command(r"""
     for id in `vim-cmd vmsvc/getallvms | grep '^[0-9]\+' | awk '{print $1}'`
     do
       vim-cmd vmsvc/power.getstate $id | grep -v Retrieved | sed "s/^/$id|/g" &
