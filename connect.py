@@ -73,7 +73,11 @@ def get_vms_list():
             vm_info[-1]['comment'] += line
 
     # 末尾の要素の <info> </info> を処理
-    parse_info_tag(vm_info[-1])
+    try:
+        parse_info_tag(vm_info[-1])
+    except IndexError:
+        pass
+
     return vm_info
 
 
