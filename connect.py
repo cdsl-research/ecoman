@@ -10,6 +10,17 @@ client = paramiko.SSHClient()
 client.load_system_host_keys()
 
 
+""" Slack通知 """
+def slack_notify(message):
+    import requests
+    import os
+    SLACK_WEBHOOK = os.environ.get('SLACK_WEBHOOK')
+    assert len(SLACK_WEBHOOK) > 10, "Incorrect SLACK_WEBHOOK"
+    requests.post(SLACK_WEBHOOK, data = json.dumps({
+        'text': message, # 投稿するテキスト
+    }))
+
+
 """ ESXi一覧をファイルから取得 """
 def get_esxi_hosts():
     import yaml
@@ -378,9 +389,13 @@ def api_create_vm(specs):
     stderr_lines = stderr.readlines()
     
     if len(stderr_lines) > 0:
-        return {"error": ' '.join([line.strip() for line in stderr_lines])}
+        payload = ' '.join([line.strip() for line in stderr_lines])
+        slack_notify(f"[Error] {author} created {vm_name}. detail: {payload}")
+        return {"error": payload}
     else:
-        return {"status": ' '.join([line.strip() for line in stdout_lines])}
+        payload = ' '.join([line.strip() for line in stdout_lines])
+        slack_notify(f"[Success] {author} created {vm_name}. detail: {payload}")
+        return {"status": payload}
     
 
 def main():
