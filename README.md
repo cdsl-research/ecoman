@@ -38,6 +38,14 @@ Acceess Web UI
 http://<your-hostname>:3300/
 ```
 
+## Option: OAuth2-Proxy support
+
+This app support enable user to SSO(Single Sing-On) with OAuth2-Proxy. 
+
+Example config `oauth2-proxy.cfg` is put that [here](oauth2-proxy.cfg.example).
+
+New endpoint is `http://<your-hostname>:4180/`.
+
 ## Screenshot
 
 VM List
