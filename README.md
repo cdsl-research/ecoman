@@ -10,6 +10,22 @@ python3 -m venv env
 pip installl -r requirements.txt
 ```
 
+Configure esxi-node credentials on hosts.yaml
+
+```
+### Example
+mint:
+  addr: 'mint.a910.tak-cslab.org'
+  username: 'root'
+  password: 'xxxxxxxxxx'
+```
+
+Try to connect ssh on terminal
+
+```
+ssh root@mint.a910.tak-cslab.org
+```
+
 Starting app
 
 ```
@@ -19,7 +35,7 @@ python app.py
 Acceess Web UI
 
 ```
-http://<your-hostname>:3000/
+http://<your-hostname>:3300/
 ```
 
 ## Screenshot
