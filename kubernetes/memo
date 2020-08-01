@@ -1,0 +1,3 @@
+kubectl create secret ecoman-secret-vars --from-literal=slack-webhook=https://xxx
+
+kubectl create secret ecoman-secret-config --from-file=../hosts.yaml
