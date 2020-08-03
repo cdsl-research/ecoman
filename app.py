@@ -92,4 +92,11 @@ def rest_update_vm_power(uniq_id):
 
 
 if __name__ == '__main__':
-    app.run(debug=True, host='127.0.0.1', port=3300)
+    import os
+    if os.environ.get('MODE') == "production":
+        app.run(debug=False, host='0.0.0.0', port=3300)
+    elif os.environ.get('MODE') == "staging":
+        app.run(debug=True, host='0.0.0.0', port=3300)
+    else:
+        app.run(debug=True, host='127.0.0.1', port=3300)
+

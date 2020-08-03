@@ -7,6 +7,7 @@ import vim_cmd_parser
 
 """ Init ssh connecter """
 client = paramiko.SSHClient()
+client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 client.load_system_host_keys()
 
 
@@ -24,7 +25,12 @@ def slack_notify(message):
 """ ESXi一覧をファイルから取得 """
 def get_esxi_hosts():
     import yaml
-    with open("hosts.yaml") as f:
+    import os
+    if os.environ.get('HOSTS_PATH'):
+        HOSTS_PATH = str(os.environ.get('HOSTS_PATH'))
+    else:
+        HOSTS_PATH = "hosts.yaml"
+    with open(HOSTS_PATH) as f:
         return yaml.safe_load(f.read())
 
 
