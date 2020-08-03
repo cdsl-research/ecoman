@@ -1,5 +1,7 @@
 # Usage
 
+## ECoMan
+
 Create namespace
 
 ```
@@ -27,3 +29,18 @@ Deploy ecoman
 ```
 kubectl apply -f ecoman.yaml
 ```
+
+## OAuth2-Proxy
+
+Create secret
+
+```
+kubectl create secret generic oauth2-secret-config --from-file=oauth2-proxy.cfg
+```
+
+Deploy app
+
+```
+kubectl apply -f oauth2-proxy.yaml
+```
+
