@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: dep-ecoman
 spec:
-  replicas: 1
+  replicas: 3
   selector:
     matchLabels:
       app: ecoman
@@ -40,6 +40,7 @@ spec:
             - key: hosts.yaml
               path: hosts.yaml
               mode: 0400
+      restartPolicy: Always
       dnsPolicy: Default
 ---
 apiVersion: v1
@@ -47,13 +48,11 @@ kind: Service
 metadata:
   name: svc-ecoman
 spec:
-  # type: ClusterIP
-  type: NodePort
+  type: ClusterIP
   ports:
     - name: "http-port"
       protocol: "TCP"
-      port: 3310
+      port: 3301
       targetPort: 3301
-      nodePort: 30031
   selector:
     app: ecoman
