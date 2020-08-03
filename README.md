@@ -30,12 +30,22 @@ Starting app
 
 ```
 python app.py
+
+# uwsgi
+pip install uwsgi
+uwsgi --http :3301 --wsgi-file app.py --callable app
 ```
 
 Acceess Web UI
 
 ```
-http://<your-hostname>:3300/
+http://<your-hostname>:3301/
+```
+
+## Docker
+
+```
+docker run -it --rm -v $PWD:/config -e HOSTS_PATH=/config/hosts.yaml -p 2200:3301 tomoyk/ecoman
 ```
 
 ## Option: OAuth2-Proxy support
