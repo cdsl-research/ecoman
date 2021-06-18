@@ -48,11 +48,12 @@ kind: Service
 metadata:
   name: svc-ecoman
 spec:
-  type: ClusterIP
+  type: NodePort
   ports:
     - name: "http-port"
       protocol: "TCP"
       port: 3301
       targetPort: 3301
+      nodePort: 30888
   selector:
     app: ecoman
