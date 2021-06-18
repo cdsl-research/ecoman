@@ -60,15 +60,15 @@ New endpoint is `http://<your-hostname>:4180/`.
 
 VM List
 
-<img src="https://raw.githubusercontent.com/cdsl-research/ecoman/master/ecoman1.jpg" width="500">
+<img src="https://raw.githubusercontent.com/cdsl-research/ecoman/master/images/ecoman1.jpg" width="500">
 
 VM Detail
 
-<img src="https://raw.githubusercontent.com/cdsl-research/ecoman/master/ecoman2.jpg" width="500">
+<img src="https://raw.githubusercontent.com/cdsl-research/ecoman/master/images/ecoman2.jpg" width="500">
 
 VM Creation
 
-<img src="https://raw.githubusercontent.com/cdsl-research/ecoman/master/ecoman3.jpg" width="500">
+<img src="https://raw.githubusercontent.com/cdsl-research/ecoman/master/images/ecoman3.jpg" width="500">
 
 ## Demo Movie
 
