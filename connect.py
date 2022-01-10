@@ -229,8 +229,9 @@ def create_vm(
         password=hostinfo.get('password')
     )
 
+    # default liux password
     USERNAME = "cdsl"
-    PASSWORD = "tutcdsl2019"
+    PASSWORD = "tokyo-univ-of-tech-2019"
     CONCAT_TAGS = ', '.join([f"|22{t}|22" for t in tags])
 
     import datetime
