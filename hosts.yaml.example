@@ -2,3 +2,4 @@ hoge:
   addr: 'hoge.a910.tak-cslab.org'
   username: 'root'
   password: 'kj;fdskfa;sd'
+  datastore_path: '/vmfs/volumes/datastore1/'
