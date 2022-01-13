@@ -16,10 +16,10 @@ def slack_notify(message):
     import requests
     import os
     SLACK_WEBHOOK = os.environ.get('SLACK_WEBHOOK')
-    assert len(SLACK_WEBHOOK) > 10, "Incorrect SLACK_WEBHOOK"
-    requests.post(SLACK_WEBHOOK, data = json.dumps({
-        'text': message, # 投稿するテキスト
-    }))
+    if SLACK_WEBHOOK:
+        requests.post(SLACK_WEBHOOK, data = json.dumps({
+            'text': message, # 投稿するテキスト
+        }))
 
 
 """ ESXi一覧をファイルから取得 """
