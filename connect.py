@@ -238,10 +238,12 @@ def create_vm(
     dt_now = datetime.datetime.now()
     CUR_DATE = dt_now.strftime('%Y-%m-%d %H:%M:%S')
 
-    concat_payload = comment + "|0A<info>|0A{|0A  |22author|22: |22" + author \
-            + "|22,|0A  |22user|22: |22" + USERNAME + "|22,|0A  |22password|22: |22" \
-            + PASSWORD + "|22,|0A  |22created_at|22: |22" + CUR_DATE + "|22,|0A  " \
-            + "|22tag|22: [ " + CONCAT_TAGS + " ]|0A}|0A</info>"
+    concat_payload = comment
+    # concat_payload = comment
+    # + "|0A<info>|0A{|0A  |22author|22: |22" + author \
+    #         + "|22,|0A  |22user|22: |22" + USERNAME + "|22,|0A  |22password|22: |22" \
+    #         + PASSWORD + "|22,|0A  |22created_at|22: |22" + CUR_DATE + "|22,|0A  " \
+    #         + "|22tag|22: [ " + CONCAT_TAGS + " ]|0A}|0A</info>"
     # print("payload: ", concat_payload)
     # catコマンドのインデントは変えると動かなくなる
     cmd = f"""
@@ -352,24 +354,29 @@ def api_create_vm(specs):
         vm_storage_gb = 30
 
     # Network
-    if specs.get('network') and specs.get('network') in ('private', 'DMZ-Network'):
+    if specs.get('network') and specs.get('network') in ('private'):
         vm_network_name = specs.get('network')
     else:
         vm_network_name = "private"
 
     # ESXi Node
-    if specs.get('esxi_node') and specs.get('esxi_node') in ('jasmine', 'mint'):
+    conf = get_esxi_hosts()
+    allow_nodes = tuple(conf.keys())
+    if specs.get('esxi_node') and specs.get('esxi_node') in allow_nodes:
         esxi_node_name = specs.get('esxi_node')
     else:
         esxi_node_name = "jasmine"
 
     # StorePath
-    store_path_node = str.capitalize(esxi_node_name)
-    vm_store_path = f"/vmfs/volumes/StoreNAS-{store_path_node}/"
-    # vm_store_path = "/vmfs/volumes/StorePCIe/"
+    # store_path_node = str.capitalize(esxi_node_name)
+    # vm_store_path = f"/vmfs/volumes/StoreNAS-{store_path_node}/"
+    # vm_store_path = f"/vmfs/volumes/datastore1/"
+    nodename = specs['esxi_node']
+    vm_store_path = conf[nodename]['datastore_path']
 
     # ISO Path
-    vm_iso_path = "/vmfs/volumes/StoreNAS-Public/os-images/custom/ubuntu-18.04.4-server-amd64-preseed.20190824.040414.iso"
+    # vm_iso_path = "/vmfs/volumes/StoreNAS-Public/os-images/custom/ubuntu-18.04.4-server-amd64-preseed.20190824.040414.iso"
+    vm_iso_path = "/vmfs/volumes/koyama-auto-install/ubuntu-2004-auto-20220105.iso"
 
     # Tags
     if specs.get('tags'):
