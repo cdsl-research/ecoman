@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dep-oauth2proxy
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: oauth2proxy
+  template:
+    metadata:
+      labels:
+        app: oauth2proxy
+    spec:
+      containers:
+        - name: oauth2-container
+          image: bitnami/oauth2-proxy:6-debian-10
+          volumeMounts:
+            # From file
+            - name: secret-oauth2-volume
+              mountPath: /config
+              readOnly: true
+          args: ["--config", "/config/oauth2-proxy.cfg"]
+          ports:
+            - containerPort: 4180
+      volumes:
+        - name: secret-oauth2-volume
+          secret:
+            secretName: oauth2-secret-config
+            items:
+            - key: oauth2-proxy.cfg
+              path: oauth2-proxy.cfg
+              mode: 0444
+      restartPolicy: Always
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: svc-oauth2proxy
+spec:
+  type: NodePort
+  ports:
+    - name: "http-port"
+      protocol: "TCP"
+      port: 4180
+      targetPort: 4180
+      nodePort: 30418
+  selector:
+    app: oauth2proxy

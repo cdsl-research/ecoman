@@ -1,0 +1,155 @@
+{% include "_header.html" %}
+
+<h3>Power</h2>
+
+<table class="table">
+<tr>
+  <td>Current Status</td>
+  <td><span id="current_power">{{ detail.get('vim.vm.Summary').get('runtime').get('powerState') | default('') }}</span></td>
+</tr>
+<tr>
+  <td>Change Status</td>
+  <td>
+    <div class="input-group">
+      <div class="form-group">
+        <select class="form-select" id="power_state">
+          <option value="on">ON</option>
+          <option value="off">OFF</option>
+          <option value="reset">RESET</option>
+          <option value="reboot">REBOOT</option>
+          <option value="shutdown">SHUTDOWN</option>
+          <option value="suspend">SUSPEND</option>
+        </select>
+      </div>
+      <button class="btn btn-primary" id="commit">Commit</button>
+    </div>
+    <p id="message"></p>
+  </td>
+</tr>
+</table>
+
+<!--
+<h3>Info</h3>
+
+<table class="table">
+<tr>
+  <td>SSH Command</td>
+  <td>ssh {{ detail.info.user }}@{{ detail.get('vim.vm.Summary').guest.hostName }}</td>
+</tr>
+<tr>
+  <td>User</td>
+  <td>{{ detail.info.user | default('') }}</td>
+</tr>
+<tr>
+  <td>Password</td>
+  <td>{{ detail.info.password }}</td>
+</tr>
+<tr>
+  <td>Author</td>
+  <td>{{ detail.info.author }}</td>
+</tr>
+<tr>
+  <td>Created At</td>
+  <td>{{ detail.info.created_at }}</td>
+</tr>
+<tr>
+  <td>Tags</td>
+  <td>{{ detail.info.tag }}</td>
+</tr>
+<tr>
+  <td>HostName</td>
+  <td>{{ detail.get('vim.vm.Summary').guest.hostName }}</td>
+</tr>
+-->
+
+<h3>Detail</h3>
+
+<table class="table">
+<tr>
+  <td>VM Name</td>
+  <td><b>{{ detail.get('vim.vm.Summary').config.name }}</b></td>
+</tr>
+<tr>
+  <td>IP Address</td>
+  <td>{{ detail.get('vim.vm.Summary').guest.ipAddress }}</td>
+</tr>
+<tr>
+  <td>VMware Tools Status</td>
+  <td>{{ detail.get('vim.vm.Summary').guest.toolsStatus }}</td>
+</tr>
+<tr>
+  <td>VM Health Status</td>
+  <td>{{ detail.get('vim.vm.Summary').overallStatus }}</td>
+</tr>
+<tr>
+  <td>BootTime</td>
+  <td>{{ detail.get('vim.vm.Summary').runtime.bootTime }}</td>
+</tr>
+<tr>
+  <td>Max CPU Usage</td>
+  <td>{{ detail.get('vim.vm.Summary').runtime.maxCpuUsage }}</td>
+</tr>
+<tr>
+  <td>VM Path</td>
+  <td>{{ detail.get('vim.vm.Summary').config.vmPathName }}</td>
+</tr>
+<tr>
+  <td>VM Num of CPU</td>
+  <td>{{ detail.get('vim.vm.Summary').config.numCpu }}</td>
+</tr>
+<tr>
+  <td>VM Memory Size</td>
+  <td>{{ detail.get('vim.vm.Summary').config.memorySizeMB }}</td>
+</tr>
+<tr>
+  <td>VM Num of Ethernet Cards</td>
+  <td>{{ detail.get('vim.vm.Summary').config.numEthernetCards }}</td>
+</tr>
+<tr>
+  <td>VM Num of Virtual Disks</td>
+  <td>{{ detail.get('vim.vm.Summary').config.numVirtualDisks }}</td>
+</tr>
+<tr>
+  <td>Annotation</td>
+  <td>{{ detail.info.annotation }}</td>
+</tr>
+<tr>
+  <td>VM Guest Name</td>
+  <td>{{ detail.get('vim.vm.Summary').config.guestFullName }}</td>
+</tr>
+</table>
+
+<style>
+.table {
+  max-width: 600px;
+}
+</style>
+
+<script>
+let setPower = function() {
+  const url = '/v1/machine/{{ uniq_id }}/power';
+  const powerState = document.getElementById('power_state').value;
+  const payload = {'state': powerState};
+  
+  fetch(url, {
+    method: 'PUT',
+    body: JSON.stringify(payload), // data can be `string` or {object}!
+    headers:{
+      'Content-Type': 'application/json'
+    }
+  }).then(res => res.json())
+    .then(response => {
+      console.log('Success:', JSON.stringify(response));
+      document.getElementById('message').innerHTML = 'Success: ' + response['detail'];
+      document.getElementById('current_power').innerHTML = powerState.toUpperCase();
+    })
+    .catch(error => {
+      console.error('Error:', error)
+      document.getElementById('message').innerHTML = error;
+    });
+}
+
+let commitButton = document.getElementById('commit');
+commitButton.addEventListener("click", setPower, false);
+</script>
+{% include "_footer.html" %}

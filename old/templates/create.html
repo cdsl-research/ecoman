@@ -1,0 +1,210 @@
+{% include "_header.html" %}
+
+<h3>Machine Specs</h3>
+
+<form class="form-horizontal" id="form-container">
+  <b>Spec Guide</b>
+
+  <div class="btn-group btn-group-block">
+    <button type="button" class="btn" id="microButton">Micro Machine</button>
+    <button type="button" class="btn" id="smallButton">Small Machine</button>
+    <button type="button" class="btn" id="mediumButton">Medium Machine</button>
+    <button type="button" class="btn" id="largeButton">Large Machine</button>
+  </div> 
+  
+  <br>
+
+  <div class="form-group">
+    <div class="col-3 col-sm-12">
+      <label class="form-label" for="name">VM Name</label>
+    </div>
+    <div class="col-9 col-sm-12">
+      <input class="form-input" type="text" id="name" placeholder="koyama-http">
+    </div>
+  </div>
+
+  <div class="form-group">
+    <div class="col-3 col-sm-12">
+      <label class="form-label" for="cpu">VM Num of CPU</label>
+    </div>
+    <div class="col-9 col-sm-12">
+      <input class="form-input" type="number" id="cpu" placeholder="1" min="1" max="4" value="1">
+    </div>
+  </div>
+
+  <div class="form-group">
+    <div class="col-3 col-sm-12">
+      <label class="form-label" for="ram">VM Memory Size</label>
+    </div>
+    <div class="col-9 col-sm-12">
+      <select id="ram" class="form-select">
+        <option value='512'>500MB</option>
+        <option value='1024'>1GB</option>
+        <option value='2048'>2GB</option>
+        <option value='4096'>4GB</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="form-group">
+    <div class="col-3 col-sm-12">
+      <label class="form-label" for="storage">VM Storage Size</label>
+    </div>
+    <div class="col-9 col-sm-12">
+      <select id="storage" class="form-select">
+        <option value='30'>30GB</option>
+        <option value='50'>50GB</option>
+        <option value='70'>70GB</option>
+        <option value='100'>100GB</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="form-group">
+    <div class="col-3 col-sm-12">
+      <label class="form-label" for="network">VM Network</label>
+    </div>
+    <div class="col-9 col-sm-12">
+      <select id="network" class="form-select">
+        <option value='private'>Private</option>
+        <option value='DMZ-Network' disabled>DMZ</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="form-group">
+    <div class="col-3 col-sm-12">
+      <label class="form-label" for="esxi_node">ESXi Node</label>
+    </div>
+    <div class="col-9 col-sm-12">
+      <select id="esxi_node" class="form-select">
+        <option value="jasmine">Jasmine</option>
+        <option value="mint">Mint</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="form-group">
+    <div class="col-3 col-sm-12">
+	    <label class="form-label" for="tags">Tags</label>
+    </div>
+    <div class="col-9 col-sm-12">
+      <input class="form-input" type="text" id="tags" placeholder="koyama, research, experiment">
+    </div>
+  </div>
+
+  <div class="form-group">
+    <div class="col-3 col-sm-12">
+      <label class="form-label" for="comment">Memo</label>
+    </div>
+    <div class="col-9 col-sm-12">
+      <input id="comment" class="form-input" type="text" placeholder="My experimental machine for performance evaluation">
+    </div>
+  </div>
+  
+  <div class="toast" id="msgbox">
+    <button type="button" id="close" class="btn btn-clear float-right"></button>
+    <p id="status"></p>
+  </div>
+
+  <div class="form-group">
+    <button type="button" id="commit" class="btn btn-primary">Create</button>
+  </div>
+</div>
+
+<style>
+#form-container {
+  max-width: 600px;
+}
+#msgbox {
+  display: none;
+  margin-bottom: .4rem;
+}
+</style>
+
+<script>
+setLoading = (is_display) => {
+  if (is_display) {
+    document.getElementById("commit").classList.add("loading");
+  } else {
+    document.getElementById("commit").classList.remove("loading");
+  }
+}
+
+setMsgbox = (message, is_success) => {
+  if (message) {
+    document.getElementById("msgbox").style.display = "block";
+    document.getElementById("status").innerHTML = message;
+    document.getElementById('msgbox').classList.remove(is_success ? "toast-error" : "toast-success");
+    document.getElementById('msgbox').classList.add(is_success ? "toast-success" : "toast-error");
+  } else {
+    document.getElementById("msgbox").style.display = "none";
+    document.getElementById("status").innerHTML = "";
+  }
+}
+
+setSpec = (cpu, ram, storage) => {
+  document.getElementById("cpu").value = cpu;
+  document.getElementById("ram").value = ram;
+  document.getElementById("storage").value = storage;
+}
+
+createMachine = () => {
+  setLoading(true);
+
+  const url = '/v1/machine';
+  const params = ["name", "cpu", "ram", "storage", "network", "esxi_node", "tags", "comment"];
+  const payloads = {};
+  params.forEach(param => {
+    payloads[param] = document.getElementById(param).value;
+  })
+  payloads['tags'] = payloads['tags'].split(",").map(item => {
+    return item.trim();
+  });
+  // console.log(payloads);
+
+  fetch(url, {
+    method: 'POST',
+    body: JSON.stringify(payloads), // data can be `string` or {object}!
+    headers:{
+      'Content-Type': 'application/json'
+    }
+  }).then(res => res.json())
+    .then(response => {
+      console.log('Success:', JSON.stringify(response));
+      setMsgbox('Success: ' + response['status'], true);
+      setLoading(false);
+    })
+    .catch(error => {
+      console.error('Error:', error)
+      setMsgbox("Fail: " + error, false);
+      setLoading(false);
+    });
+}
+
+let commitButton = document.getElementById('commit');
+commitButton.addEventListener("click", createMachine, false);
+
+let closeButton = document.getElementById('close');
+closeButton.addEventListener("click", () => {
+  setMsgbox(false);
+}, false);
+
+document.getElementById('microButton').addEventListener("click", () => {
+  setSpec(1, 512, 30);
+}, false);
+
+document.getElementById('smallButton').addEventListener("click", () => {
+  setSpec(1, 1024, 30);
+}, false);
+
+document.getElementById('mediumButton').addEventListener("click", () => {
+  setSpec(2, 2048, 50);
+}, false);
+
+document.getElementById('largeButton').addEventListener("click", () => {
+  setSpec(4, 4096, 70);
+}, false);
+</script>
+
+{% include "_footer.html" %}

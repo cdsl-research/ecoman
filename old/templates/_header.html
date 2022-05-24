@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset='utf-8'>
+    <title>ECoMan | {{ title }}</title>
+    <link rel="stylesheet" href="/static/spectre.min.css">
+  </head>
+  <body>
+    <div class="container" style="max-width: 1800px; margin-top: 20px; margin-bottom: 20px;">
+      <header class="navbar" style="padding-bottom: 1rem; padding-top: 1rem;">
+        <section class="navbar-section">
+          <a href="#" class="navbar-brand mr-2" style="font-weight: bold;">ECoMan</a>
+          <a href="/" class="btn btn-link">VM List</a>
+          <a href="/create" class="btn btn-link">Create VM</a>
+        </section>
+        <section class="navbar-section">
+        {% if email %}
+	  <span>{{ email }} としてログイン中</span>
+	{% else %}
+	  <span>Anonymous としてログイン中</span>
+	{% endif %}
+        </section>
+      </header>
