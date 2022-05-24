@@ -10,7 +10,6 @@ import paramiko
 import yaml
 
 import vim_cmd_parser
-from model import MachineSpec
 
 
 class PowerStatus:
