@@ -1,50 +1,47 @@
 {% include "_header.html" %}
-  <table class="table table-striped table-hover">
-    <thead>
-      <tr>
-        <th>Power</th>
-	<th>Uniq ID</th>
-        <th>Name</th>
-        <th>Datastore</th>
-        <th>Guest OS</th>
-	<th>IP Address</th>
-        <th>Comment</th>
-	<th>Author</th>
-	<!-- th>User</th>
-	<th>Password</th -->
-	<th>Created At</th>
-	<th>Tags</th>
-      </tr>
-    </thead>
-    <tbody>
+<table class="table table-striped table-hover">
+  <thead>
+    <tr>
+      <th>Power</th>
+      <th>Uniq ID</th>
+      <th>Name</th>
+      <th>Datastore</th>
+      <th>Guest OS</th>
+      <th>IP Address</th>
+      <th>Comment</th>
+      <th>Author</th>
+      <th>Created At</th>
+      <th>Tags</th>
+    </tr>
+  </thead>
+  <tbody>
     {% for machine in machines %}
-      <tr>
-        <td>
-          {% if machine.power | upper() == "ON" %}
-	    <span class="label label-success">{{ machine.power | upper() }}</span>
-	  {% elif machine.power | upper() == "OFF" %}
-	    <span class="label label-error">{{ machine.power | upper() }}</span>
-	  {% else %}
-	    <span class="label label-warning">{{ machine.power | upper() }}</span>
-	  {% endif %}
-        </td>
-        <td><a href="https://{{ machine.esxi_addr }}/ui/#/host/vms/{{ machine.id }}" target="_blank">{{ machine.uniq_id }}</a></td>
-        <td><a href="/machine/{{ machine.uniq_id }}">{{ machine.name }}</a></td>
-        <td>{{ machine.datastore }}</td>
-        <td>{{ machine.guest_os }}</td>
-        <td>{{ machine.ipaddr }}</td>
-        <td>{{ machine.comment }}</td>
-        <td>{{ machine.memo.author | default('') }}</td>
-	<!-- <td>{{ machine.memo.user | default('') }}</td>
-	<td>{{ machine.memo.password| default('') }}</td> -->
-        <td>{{ machine.memo.created_at | default('') }}</td>
-	<td>
-	  {% for tg in machine.memo.tag %}
-	    <span class="label label-secondary mr-1">{{ tg | default('') }}</span>
-	  {% endfor %}
-	</td>
-      </tr>
+    <tr>
+      <td>
+        {% if machine.power | upper() == "ON" %}
+        <span class="label label-success">{{ machine.power | upper() }}</span>
+        {% elif machine.power | upper() == "OFF" %}
+        <span class="label label-error">{{ machine.power | upper() }}</span>
+        {% else %}
+        <span class="label label-warning">{{ machine.power | upper() }}</span>
+        {% endif %}
+      </td>
+      <td><a href="https://{{ machine.esxi_addr }}/ui/#/host/vms/{{ machine.id }}" target="_blank">{{ machine.uniq_id
+          }}</a></td>
+      <td><a href="/machine/{{ machine.uniq_id }}">{{ machine.name }}</a></td>
+      <td>{{ machine.datastore }}</td>
+      <td>{{ machine.guest_os }}</td>
+      <td>{{ machine.ipaddr }}</td>
+      <td>{{ machine.comment }}</td>
+      <td>{{ machine.memo.author | default('') }}</td>
+      <td>{{ machine.memo.created_at | default('') }}</td>
+      <td>
+        {% for tg in machine.memo.tag %}
+        <span class="label label-secondary mr-1">{{ tg | default('') }}</span>
+        {% endfor %}
+      </td>
+    </tr>
     {% endfor %}
-    </tbody>
+  </tbody>
   <table>
-{% include "_footer.html" %}
+    {% include "_footer.html" %}
