@@ -1,8 +1,34 @@
-import re
+import ipaddress
 import json
+import os
+import pathlib
+import re
+from dataclasses import dataclass
+from typing import Dict
+
 import paramiko
+import yaml
 
 import vim_cmd_parser
+from model import MachineSpec
+
+
+class PowerStatus:
+    ON: str = "on"
+    OFF: str = "off"
+    SUSPEND: str = "suspend"
+    UNKNOWN: str = "unknown"
+
+
+@dataclass
+class MachineDetail:
+    id: int
+    name: str
+    datastore: str
+    datastore_path: pathlib.Path
+    guest_os: str
+    vm_version: str
+    comment: str
 
 
 """ Init ssh connecter """
@@ -11,21 +37,19 @@ client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 client.load_system_host_keys()
 
 
-""" Slack通知 """
-def slack_notify(message):
-    import requests
-    import os
-    SLACK_WEBHOOK = os.environ.get('SLACK_WEBHOOK')
-    if SLACK_WEBHOOK:
-        requests.post(SLACK_WEBHOOK, data = json.dumps({
-            'text': message, # 投稿するテキスト
-        }))
+# def slack_notify(message):
+#     """ Slack通知 """
+#     import requests
+#     import os
+#     SLACK_WEBHOOK = os.environ.get('SLACK_WEBHOOK')
+#     if SLACK_WEBHOOK:
+#         requests.post(SLACK_WEBHOOK, data=json.dumps({
+#             'text': message,  # 投稿するテキスト
+#         }))
 
 
-""" ESXi一覧をファイルから取得 """
-def get_esxi_hosts():
-    import yaml
-    import os
+def get_esxi_nodes():
+    """ ESXi一覧をファイルから取得 """
     if os.environ.get('HOSTS_PATH'):
         HOSTS_PATH = str(os.environ.get('HOSTS_PATH'))
     else:
@@ -34,72 +58,37 @@ def get_esxi_hosts():
         return yaml.safe_load(f.read())
 
 
-# """ ESXiのhost->addrを解決 """
-# def app_resolve_esxi_addr(esxi_host):
-#     esxi_dct = get_esxi_hosts()
-#     try:
-#         esxi_addr = esxi_dct[esxi_host]['addr']
-#     except KeyError:
-#         raise ValueError("Cloud not resolve host. Given undefined host.")
-#     return esxi_addr
-
-
-""" VMのリストを取得 """
-def get_vms_list():
-    import re
-    import json
-
-    def parse_info_tag(dat):
-        vm_memo = re.search(r'<info>.+</info>', dat['comment'], flags=re.DOTALL)
-        # <info>xxx</info>を含む
-        if vm_memo is not None:
-            json_str = vm_memo.group().strip('<info>').strip('</info>').strip('\n')
-            # print(json_str)
-            dat['memo'] = json.loads(json_str)
-            # comment属性の<info>xxx</info>を取り除く
-            dat['comment'] = re.sub(r'<info>.*</info>', '', dat['comment'], flags=re.DOTALL)
+def get_vms_list() -> Dict[int, MachineDetail]:
+    """ VMのリストを取得 """
 
     # VM情報一覧の2行目～を取得(ラベルを除外)
-    stdin, stdout, stderr = client.exec_command('vim-cmd vmsvc/getallvms')
-    vm_info = []
+    _, stdout, _ = client.exec_command('vim-cmd vmsvc/getallvms')
+    vm_info: Dict[int, MachineDetail] = {}
     for line in stdout.readlines():
         # 数字から始まる行
         if re.match(r'^\d+', line):
-            # 前の要素のcommentを組み立て
-            if len(vm_info) > 0:
-                parse_info_tag(vm_info[-1])
-
             dat = line.strip('\n').split()
-            vm_info.append({
-                'id': dat[0],
-                'name': dat[1],
-                'datastore': dat[2],
-                'datastore_path': dat[3],
-                'guest_os': dat[4],
-                'vm_version': dat[5],
-                'comment': ' '.join(dat[6:]),
-                'memo': None
-            })
+            vmid = int(dat[0])
+            vm_info[vmid] = MachineDetail(
+                id=vmid,
+                name=dat[1],
+                datastore=dat[2],
+                datastore_path=dat[3],
+                guest_os=dat[4],
+                vm_version=dat[5],
+                comment=' '.join(dat[6:])
+            )
 
         # Vmidから始まる行
         elif line.startswith("Vmid"):
             continue
 
-        # その他の行(コメント)
-        else:
-            vm_info[-1]['comment'] += line
-
-    # 末尾の要素の <info> </info> を処理
-    try:
-        parse_info_tag(vm_info[-1])
-    except IndexError:
-        pass
-
     return vm_info
 
 
-""" VMの電源状態のリストを取得 """
-def get_vms_power():
+def get_vms_power() -> Dict[int, PowerStatus]:
+    """ VMの電源状態のリストを取得 """
+
     # VMの電源一覧を取得
     _, stdout, stderr = client.exec_command(r"""
     for id in `vim-cmd vmsvc/getallvms | grep '^[0-9]\+' | awk '{print $1}'`
@@ -109,23 +98,25 @@ def get_vms_power():
     """)
 
     # VMの電源一覧を整形
-    result = {}
+    result: Dict[int, PowerStatus] = {}
     for line in stdout.readlines():
-        vmid, state = line.split('|')
+        _vmid, state = line.split('|')
+        vmid = int(_vmid)
         if 'Suspended' in state:
-            result[vmid] = 'suspend'
+            result[vmid] = PowerStatus.SUSPEND
         elif 'Powered on' in state:
-            result[vmid] = 'on'
+            result[vmid] = PowerStatus.ON
         elif 'Powered off' in state:
-            result[vmid] = 'off'
+            result[vmid] = PowerStatus.OFF
         else:
-            result[vmid] = 'unknown'
+            result[vmid] = PowerStatus.UNKNOWN
 
     return result
 
 
-""" VMのIPアドレスのリストを取得 """
-def get_vms_ip():
+def get_vms_ip() -> Dict[int, ipaddress.IPv4Address]:
+    """ VMのIPアドレスのリストを取得 """
+
     _, stdout, stderr = client.exec_command(r"""
     for id in `vim-cmd vmsvc/getallvms | grep '^[0-9]\+' | awk '{print $1}'`
     do
@@ -133,17 +124,18 @@ def get_vms_ip():
     done
     """)
 
-    result = {}
+    result: Dict[int, ipaddress.IPv4Address] = {}
     for line in stdout.readlines():
         vmid, ipaddr = line.split('|')
-        result[vmid] = ipaddr
+        result[int(vmid)] = ipaddress.IPv4Address(ipaddr)
 
     return result
 
 
-""" 個別VMの詳細を取得 """
-def get_vm_detail(esxi_hostname, vmid):
-    hostinfo = get_esxi_hosts().get(esxi_hostname)
+def get_vm_detail(esxi_hostname: str, vmid: int):
+    """ 個別VMの詳細を取得 """
+
+    hostinfo = get_esxi_nodes().get(esxi_hostname)
     if hostinfo is None:
         return "error"
 
@@ -152,24 +144,27 @@ def get_vm_detail(esxi_hostname, vmid):
         username=hostinfo.get('username'),
         password=hostinfo.get('password')
     )
-    stdin, stdout, stderr = client.exec_command(f'vim-cmd vmsvc/get.summary {vmid}')
+    _, stdout, _ = client.exec_command(
+        f'vim-cmd vmsvc/get.summary {vmid}')
     vm_detail = vim_cmd_parser.parser(stdout.read().decode().split('\n'))
     # TODO: vm_detailが空か判定する
     try:
-        info_tag = re.search(r'<info>.*</info>', vm_detail['vim.vm.Summary']['config']['annotation'])
+        info_tag = re.search(
+            r'<info>.*</info>', vm_detail['vim.vm.Summary']['config']['annotation'])
     except KeyError:
         info_tag = None
-    
+
     # Don't have json data
     if info_tag is None:
-        vm_org_info = dict()
-        annotation = '' 
+        vm_org_info = {}
+        annotation = ''
     else:
         json_str = info_tag.group().strip('<info>').strip('</info>')
         vm_org_info = json.loads(json_str)
-        annotation = re.sub(r'<info>.*</info>', '', vm_detail['vim.vm.Summary']['config']['annotation'])
+        annotation = re.sub(r'<info>.*</info>', '',
+                            vm_detail['vim.vm.Summary']['config']['annotation'])
 
-    format_func = lambda x: '' if x is None else x
+    def format_func(x): return '' if x is None else x
     vm_detail['info'] = {
         'author': format_func(vm_org_info.get('author')),
         'user': format_func(vm_org_info.get('user')),
@@ -181,19 +176,20 @@ def get_vm_detail(esxi_hostname, vmid):
     return vm_detail
 
 
-""" 個別VMの電源を操作 """
 def set_vm_power(esxi_hostname, vmid, power_state):
-    host = get_esxi_hosts().get(esxi_hostname)
+    """ 個別VMの電源を操作 """
+    host = get_esxi_nodes().get(esxi_hostname)
     assert host is not None, "Undefined uniq_id."
     POWER_STATE = ('on', 'off', 'shutdown', 'reset', 'reboot', 'suspend')
     assert power_state in POWER_STATE, "Invalid power state."
-    
+
     client.connect(
         hostname=host.get('addr'),
         username=host.get('username'),
         password=host.get('password')
     )
-    stdin, stdout, stderr = client.exec_command(f'vim-cmd vmsvc/power.{power_state} {vmid}')
+    stdin, stdout, stderr = client.exec_command(
+        f'vim-cmd vmsvc/power.{power_state} {vmid}')
     # TODO: 判定を作成
     '''
     ON) Powering on VM:
@@ -207,22 +203,23 @@ def set_vm_power(esxi_hostname, vmid, power_state):
     return stdout.read().decode().strip('\n')
 
 
-""" VMを作成 """
 def create_vm(
-        vm_name = 'ecoman-example3',
-        vm_ram_mb = 512, 
-        vm_cpu = 1, 
-        vm_storage_gb = 30, 
-        vm_network_name = "private", 
-        vm_store_path = "/vmfs/volumes/StoreNAS-Jasmine/",
-        vm_iso_path = "/vmfs/volumes/StoreNAS-Public/os-images/custom/ubuntu-18.04.4-server-amd64-preseed.20190824.040414.iso",
-        esxi_node_name = "jasmine",
-        author = "unknown",
-        tags = [],
-        comment = ""
-    ):
+    vm_name='ecoman-example3',
+    vm_ram_mb=512,
+    vm_cpu=1,
+    vm_storage_gb=30,
+    vm_network_name="private",
+    vm_store_path="/vmfs/volumes/StoreNAS-Jasmine/",
+    vm_iso_path="/vmfs/volumes/StoreNAS-Public/os-images/custom/ubuntu-18.04.4-server-amd64-preseed.20190824.040414.iso",
+    esxi_node_name="jasmine",
+    author="unknown",
+    tags=[],
+    comment=""
 
-    hostinfo = get_esxi_hosts().get(esxi_node_name)
+
+):
+    """ VMを作成 """
+    hostinfo = get_esxi_nodes().get(esxi_node_name)
     client.connect(
         hostname=hostinfo.get('addr'),
         username=hostinfo.get('username'),
@@ -275,7 +272,6 @@ EOF
 
     rm {vm_name}-flat.vmdk  {vm_name}.vmdk
     vmkfstools --createvirtualdisk {vm_storage_gb}G -d thin {vm_name}.vmdk
-    
     vim-cmd vmsvc/reload $vmid
     vim-cmd vmsvc/power.on $vmid
     """
@@ -284,42 +280,8 @@ EOF
     return stdout, stderr
 
 
-def app_top():
-    vm_formated_info = []
-    for hostname,param in get_esxi_hosts().items():
-        try:
-            # VMにSSH接続
-            client.connect(
-                hostname=param.get('addr'),
-                username=param.get('username'),
-                password=param.get('password')
-            )
-        except paramiko.ssh_exception.SSHException as e:
-            print(e)
-
-        # VM一覧を結合
-        vm_list = get_vms_list()
-        vm_power = get_vms_power()
-        vm_ip = get_vms_ip()
-        for vm in vm_list:
-            vm['uniq_id'] = hostname + '|' + vm.get('id')
-            vm['esxi_host'] = hostname
-            vm['esxi_addr'] = param.get('addr')
-            try:
-                vm['power'] = vm_power[vm['id']]
-            except KeyError:
-                vm['power'] = 'error'
-            try:
-                vm['ipaddr'] = vm_ip[vm['id']]
-            except KeyError:
-                vm['ipaddr'] = 'unknown'
-        vm_formated_info.extend(vm_list)
-    
-    return vm_formated_info
-
-
 def app_detail(uniq_id):
-    hostname,vmid = uniq_id.split('|')
+    hostname, vmid = uniq_id.split('|')
     return get_vm_detail(hostname, vmid)
 
 
@@ -327,40 +289,42 @@ def app_set_power(uniq_id, power_state):
     hostname, vmid = uniq_id.split('|')
     return set_vm_power(hostname, vmid, power_state)
 
-def api_create_vm(specs):
+
+def api_create_vm(specs: MachineSpec):
     # NAME
-    if specs.get('name'):
-        vm_name = specs.get('name')
+    if specs.name:
+        vm_name = specs.name
     else:
         import random
-        vm_name = 'example-'+str(random.randint(100, 999))
+        suffix = str(random.randint(0, 999)).zfill(3)
+        vm_name = f"machine-{suffix}"
 
     # RAM
-    if specs.get('ram') and int(specs.get('ram')) >= 512:
-        vm_ram_mb = int(specs.get('ram'))
+    if specs.ram_mb >= 512:
+        vm_ram_mb = specs.ram_mb
     else:
         vm_ram_mb = 512
 
     # CPU
-    if specs.get('cpu') and int(specs.get('cpu')) >= 1:
-        vm_cpu = int(specs.get('cpu'))
+    if specs.cpu_cores >= 1:
+        vm_cpu = specs.cpu_cores
     else:
         vm_cpu = 1
 
     # Storage
-    if specs.get('storage') and int(specs.get('storage')) >= 30:
-        vm_storage_gb = int(specs.get('storage'))
+    if specs.storage_gb >= 30:
+        vm_storage_gb = specs.storage_gb
     else:
         vm_storage_gb = 30
 
     # Network
-    if specs.get('network') and specs.get('network') in ('private'):
-        vm_network_name = specs.get('network')
+    if specs.network_port_group:
+        vm_network_name = specs.network_port_group
     else:
-        vm_network_name = "private"
+        vm_network_name = "VM Network"
 
     # ESXi Node
-    conf = get_esxi_hosts()
+    conf = get_esxi_nodes()
     allow_nodes = tuple(conf.keys())
     if specs.get('esxi_node') and specs.get('esxi_node') in allow_nodes:
         esxi_node_name = specs.get('esxi_node')
@@ -396,21 +360,22 @@ def api_create_vm(specs):
     else:
         author = "anonymous"
 
-    stdout, stderr = create_vm(vm_name, vm_ram_mb, vm_cpu, vm_storage_gb, 
-            vm_network_name, vm_store_path, vm_iso_path, esxi_node_name,
-            author, tags, comment)
+    stdout, stderr = create_vm(vm_name, vm_ram_mb, vm_cpu, vm_storage_gb,
+                               vm_network_name, vm_store_path, vm_iso_path, esxi_node_name,
+                               author, tags, comment)
     stdout_lines = stdout.readlines()
     stderr_lines = stderr.readlines()
-    
+
     if len(stderr_lines) > 0:
         payload = ' '.join([line.strip() for line in stderr_lines])
-        slack_notify(f"[Error] {author} created {vm_name}. detail: {payload}")
+        # slack_notify(f"[Error] {author} created {vm_name}. detail: {payload}")
         return {"error": payload}
     else:
         payload = ' '.join([line.strip() for line in stdout_lines])
-        slack_notify(f"[Success] {author} created {vm_name}. detail: {payload}")
+        # slack_notify(
+        #     f"[Success] {author} created {vm_name}. detail: {payload}")
         return {"status": payload}
-    
+
 
 def main():
     pass
@@ -418,4 +383,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
