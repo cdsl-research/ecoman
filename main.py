@@ -2,25 +2,29 @@ import json
 
 from fastapi import FastAPI, Request
 from fastapi.templating import Jinja2Templates
+from fastapi.staticfiles import StaticFiles
+from requests import request
 
 import connect
 
 app = FastAPI()
 templates = Jinja2Templates(directory="templates")
-
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 @app.get("/")
-def page_top():
+def page_top(request: Request):
     return templates.TemplateResponse("top.html", {
         "title": "TOP",
-        "machines": connect.app_top()
+        "machines": connect.app_top(),
+        "request": request
     })
 
 
 @app.get("/create")
 def page_create_vm():
     return templates.TemplateResponse("create.html", {
-        "title": "CREATE VM"
+        "title": "CREATE VM",
+        "request": request
     })
 
 
@@ -29,7 +33,8 @@ def page_read_vm_detail(esxi_nodename:str, machine_id: int):
     return templates.TemplateResponse("detail.html", {
         "title": f"DETAIL: {esxi_nodename} {machine_id}",
         "uniq_id": machine_id,
-        "detail": connect.app_detail(f"{esxi_nodename}|{machine_id}")
+        "detail": connect.app_detail(f"{esxi_nodename}|{machine_id}"),
+        "request": request
     })
 
 
