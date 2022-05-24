@@ -29,7 +29,7 @@ def get_esxi_hosts():
     if os.environ.get('HOSTS_PATH'):
         HOSTS_PATH = str(os.environ.get('HOSTS_PATH'))
     else:
-        HOSTS_PATH = "hosts.yaml"
+        HOSTS_PATH = "hosts.yml"
     with open(HOSTS_PATH) as f:
         return yaml.safe_load(f.read())
 
