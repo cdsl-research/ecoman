@@ -1,6 +1,5 @@
-from dataclasses import dataclass
 import pathlib
-from typing import Literal
+from dataclasses import dataclass
 
 
 @dataclass
@@ -47,3 +46,12 @@ class PowerStatus:
     OFF: str = "off"
     SUSPEND: str = "suspend"
     UNKNOWN: str = "unknown"
+
+
+@dataclass
+class HostsConfig:
+    addr: str
+    username: str
+    password: str
+    datastore_path: pathlib.Path
+    installer_iso_path: pathlib.Path

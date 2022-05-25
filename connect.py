@@ -1,19 +1,13 @@
-import datetime
 import ipaddress
-import json
 import pathlib
 import re
-from dataclasses import dataclass
-from importlib.resources import path
-from typing import Dict, Tuple
+from typing import Dict
 
 import paramiko
-from paramiko import channel
 
 import load_config
-import vim_cmd_parser
 import model
-
+import vim_cmd_parser
 
 """ Init ssh connecter """
 client = paramiko.SSHClient()
@@ -109,47 +103,23 @@ def get_vms_ip() -> Dict[int, ipaddress.IPv4Address]:
 def get_vm_detail(esxi_nodename: str, vmid: int):
     """ 個別VMの詳細を取得 """
 
-    hostinfo = load_config.get_esxi_nodes().get(esxi_nodename)
-    if hostinfo is None:
-        return "error"
+    conf = load_config.get_esxi_nodes()
+    esxi_nodenames = tuple(conf.keys())  # get ESXi Node List
+    assert esxi_nodename in esxi_nodenames, "Invalid esxi_nodename is specified in param"
 
+    esxi_node_info: model.HostsConfig = conf[esxi_nodename]
     client.connect(
-        hostname=hostinfo.get('addr'),
-        username=hostinfo.get('username'),
-        password=hostinfo.get('password')
+        hostname=esxi_node_info.addr,
+        username=esxi_node_info.username,
+        password=esxi_node_info.password
     )
     _, stdout, _ = client.exec_command(f'vim-cmd vmsvc/get.summary {vmid}')
     vm_detail = vim_cmd_parser.parser(stdout.read().decode().split('\n'))
-    # TODO: vm_detailが空か判定する
-    try:
-        info_tag = re.search(
-            r'<info>.*</info>', vm_detail['vim.vm.Summary']['config']['annotation'])
-    except KeyError:
-        info_tag = None
 
-    # Don't have json data
-    if info_tag is None:
-        vm_org_info = {}
-        annotation = ''
-    else:
-        json_str = info_tag.group().strip('<info>').strip('</info>')
-        vm_org_info = json.loads(json_str)
-        annotation = re.sub(r'<info>.*</info>', '',
-                            vm_detail['vim.vm.Summary']['config']['annotation'])
-
-    def format_func(x): return '' if x is None else x
-    vm_detail['info'] = {
-        'author': format_func(vm_org_info.get('author')),
-        'user': format_func(vm_org_info.get('user')),
-        'password': format_func(vm_org_info.get('password')),
-        'created_at': format_func(vm_org_info.get('created_at')),
-        'tag': ', '.join(format_func(vm_org_info.get('tag'))),
-        'annotation': format_func(annotation)
-    }
     return vm_detail
 
 
-def set_vm_power(esxi_nodename: str, vmid: int, power_state: PowerStatus) -> str:
+def set_vm_power(esxi_nodename: str, vmid: int, power_state: model.PowerStatus) -> str:
     """ 個別VMの電源を操作 """
 
     host = load_config.get_esxi_nodes().get(esxi_nodename)
