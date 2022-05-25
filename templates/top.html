@@ -3,15 +3,12 @@
   <thead>
     <tr>
       <th>Power</th>
-      <th>Uniq ID</th>
+      <th>ESXi Node</th>
+      <th>VM ID</th>
       <th>Name</th>
-      <th>Datastore</th>
       <th>Guest OS</th>
       <th>IP Address</th>
       <th>Comment</th>
-      <th>Author</th>
-      <th>Created At</th>
-      <th>Tags</th>
     </tr>
   </thead>
   <tbody>
@@ -26,20 +23,12 @@
         <span class="label label-warning">{{ machine.power | upper() }}</span>
         {% endif %}
       </td>
-      <td><a href="https://{{ machine.esxi_addr }}/ui/#/host/vms/{{ machine.id }}" target="_blank">{{ machine.uniq_id
-          }}</a></td>
+      <td>{{ machine.esxi_nodename }}</td>
+      <td>{{ machine.vmid }}</a></td>
       <td><a href="/machine/{{ machine.uniq_id }}">{{ machine.name }}</a></td>
-      <td>{{ machine.datastore }}</td>
       <td>{{ machine.guest_os }}</td>
       <td>{{ machine.ipaddr }}</td>
       <td>{{ machine.comment }}</td>
-      <td>{{ machine.memo.author | default('') }}</td>
-      <td>{{ machine.memo.created_at | default('') }}</td>
-      <td>
-        {% for tg in machine.memo.tag %}
-        <span class="label label-secondary mr-1">{{ tg | default('') }}</span>
-        {% endfor %}
-      </td>
     </tr>
     {% endfor %}
   </tbody>

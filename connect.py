@@ -85,7 +85,7 @@ def get_vms_power() -> Dict[int, model.PowerStatus]:
 def get_vms_ip() -> Dict[int, ipaddress.IPv4Address]:
     """ VMのIPアドレスのリストを取得 """
 
-    _, stdout, stderr = client.exec_command(r"""
+    _, stdout, _ = client.exec_command(r"""
     for id in `vim-cmd vmsvc/getallvms | grep '^[0-9]\+' | awk '{print $1}'`
     do
       vim-cmd vmsvc/get.summary $id | grep ipAddress | grep -o \"[0-9a-f:\.]\\+\" | sed "s/\"//g;s/^/$id|/g" &
@@ -95,7 +95,7 @@ def get_vms_ip() -> Dict[int, ipaddress.IPv4Address]:
     result: Dict[int, ipaddress.IPv4Address] = {}
     for line in stdout.readlines():
         vmid, ipaddr = line.split('|')
-        result[int(vmid)] = ipaddress.IPv4Address(ipaddr)
+        result[int(vmid)] = ipaddress.IPv4Address(ipaddr.strip())
 
     return result
 

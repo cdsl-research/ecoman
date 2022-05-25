@@ -1,6 +1,6 @@
 import json
 import pathlib
-from dataclasses import dataclass
+from dataclasses import dataclass, asdict
 from ipaddress import IPv4Address
 from typing import Literal
 
@@ -33,9 +33,37 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 
 @app.get("/", response_class=HTMLResponse)
 def page_top(request: Request):
+    machines_info = []
+    for esxi_nodename, config in load_config.get_esxi_nodes().items():
+        try:
+            # VMにSSH接続
+            connect.client.connect(
+                hostname=config.addr,
+                username=config.username,
+                password=config.password
+            )
+        except paramiko.ssh_exception.SSHException as e:
+            print(e)
+
+        # VM一覧を結合
+        vm_list = connect.get_vms_list()
+        vm_power = connect.get_vms_power()
+        vm_ip = connect.get_vms_ip()
+
+        for vmid, machine_detail in vm_list.items():
+            power = vm_power.get(vmid, "unknown")
+            ipaddr = vm_ip.get(vmid, "")
+            vm_info = asdict(machine_detail) | {
+                "power": power,
+                "ipaddr": ipaddr,
+                "esxi_node_name": esxi_nodename,
+                "esxi_node_addr": config.addr,
+            }
+            machines_info.append(vm_info)
+
     return templates.TemplateResponse("top.html", {
         "title": "TOP",
-        "machines": connect.app_top(),
+        "machines": machines_info,
         "request": request
     })
 
@@ -107,7 +135,7 @@ class CreateMachineRequest:
 
 
 @app.post("/v1/machine")
-def api_create_vm(machine_req_req: model.CreateMachineRequest):
+def api_create_vm(machine_req_req: CreateMachineRequest):
     # encode recieved request
     machine_req_req_enc = jsonable_encoder(machine_req_req)
     # validate and convert datamodel
@@ -122,7 +150,7 @@ def api_create_vm(machine_req_req: model.CreateMachineRequest):
     return result
 
 
-def validate_machine_req(machine_req: model.CreateMachineRequest) -> model.CreateMachineSpec:
+def validate_machine_req(machine_req: CreateMachineRequest) -> model.CreateMachineSpec:
     """ 仮想マシンの仕様を検証 """
 
     # NAME
