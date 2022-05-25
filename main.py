@@ -131,13 +131,11 @@ def api_create_vm(request: Request):
 
 @app.get("/v1/machine/{esxi_nodename}/{machine_id}")
 def api_read_vm(esxi_nodename: str, machine_id: int):
-    uniq_id = f"{esxi_nodename}|{machine_id}"
-    return connect.app_detail(uniq_id)
+    return connect.get_vm_detail(esxi_nodename, machine_id)
 
 
 @app.put("/v1/machine/{esxi_nodename}/{machine_id}/power")
 def api_update_vm_power(esxi_nodename: str, machine_id: int, request: Request):
-    uniq_id = f"{esxi_nodename}|{machine_id}"
     # Parse Request
     req_data = request.get_data()
     req_txt = req_data.decode('utf-8')
@@ -145,5 +143,9 @@ def api_update_vm_power(esxi_nodename: str, machine_id: int, request: Request):
     # Get Request status
     power_state = payload.get('state')
     # Change status
-    result = connect.app_set_power(uniq_id, power_state)
+    result: str = connect.set_vm_power(
+        esxi_nodename=esxi_nodename,
+        vmid=machine_id,
+        power_state=power_state
+    )
     return {"status": "ok", "detail": result}
