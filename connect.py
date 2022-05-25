@@ -1,14 +1,16 @@
+import datetime
 import ipaddress
 import json
-import os
 import pathlib
 import re
 from dataclasses import dataclass
-from typing import Dict
+from importlib.resources import path
+from typing import Dict, Tuple
 
 import paramiko
-import yaml
+from paramiko import channel
 
+import load_config
 import vim_cmd_parser
 
 
@@ -17,17 +19,6 @@ class PowerStatus:
     OFF: str = "off"
     SUSPEND: str = "suspend"
     UNKNOWN: str = "unknown"
-
-
-@dataclass
-class MachineDetail:
-    id: int
-    name: str
-    datastore: str
-    datastore_path: pathlib.Path
-    guest_os: str
-    vm_version: str
-    comment: str
 
 
 """ Init ssh connecter """
@@ -47,14 +38,15 @@ client.load_system_host_keys()
 #         }))
 
 
-def get_esxi_nodes():
-    """ ESXi一覧をファイルから取得 """
-    if os.environ.get('HOSTS_PATH'):
-        HOSTS_PATH = str(os.environ.get('HOSTS_PATH'))
-    else:
-        HOSTS_PATH = "hosts.yml"
-    with open(HOSTS_PATH) as f:
-        return yaml.safe_load(f.read())
+@dataclass
+class MachineDetail:
+    id: int
+    name: str
+    datastore: str
+    datastore_path: pathlib.Path
+    guest_os: str
+    vm_version: str
+    comment: str
 
 
 def get_vms_list() -> Dict[int, MachineDetail]:
@@ -89,7 +81,7 @@ def get_vms_power() -> Dict[int, PowerStatus]:
     """ VMの電源状態のリストを取得 """
 
     # VMの電源一覧を取得
-    _, stdout, stderr = client.exec_command(r"""
+    _, stdout, _ = client.exec_command(r"""
     for id in `vim-cmd vmsvc/getallvms | grep '^[0-9]\+' | awk '{print $1}'`
     do
       vim-cmd vmsvc/power.getstate $id | grep -v Retrieved | sed "s/^/$id|/g" &
@@ -131,10 +123,10 @@ def get_vms_ip() -> Dict[int, ipaddress.IPv4Address]:
     return result
 
 
-def get_vm_detail(esxi_hostname: str, vmid: int):
+def get_vm_detail(esxi_nodename: str, vmid: int):
     """ 個別VMの詳細を取得 """
 
-    hostinfo = get_esxi_nodes().get(esxi_hostname)
+    hostinfo = load_config.get_esxi_nodes().get(esxi_nodename)
     if hostinfo is None:
         return "error"
 
@@ -143,8 +135,7 @@ def get_vm_detail(esxi_hostname: str, vmid: int):
         username=hostinfo.get('username'),
         password=hostinfo.get('password')
     )
-    _, stdout, _ = client.exec_command(
-        f'vim-cmd vmsvc/get.summary {vmid}')
+    _, stdout, _ = client.exec_command(f'vim-cmd vmsvc/get.summary {vmid}')
     vm_detail = vim_cmd_parser.parser(stdout.read().decode().split('\n'))
     # TODO: vm_detailが空か判定する
     try:
@@ -175,9 +166,10 @@ def get_vm_detail(esxi_hostname: str, vmid: int):
     return vm_detail
 
 
-def set_vm_power(esxi_hostname, vmid, power_state):
+def set_vm_power(esxi_nodename: str, vmid: int, power_state: PowerStatus) -> str:
     """ 個別VMの電源を操作 """
-    host = get_esxi_nodes().get(esxi_hostname)
+
+    host = load_config.get_esxi_nodes().get(esxi_nodename)
     assert host is not None, "Undefined uniq_id."
     POWER_STATE = ('on', 'off', 'shutdown', 'reset', 'reboot', 'suspend')
     assert power_state in POWER_STATE, "Invalid power state."
@@ -187,7 +179,7 @@ def set_vm_power(esxi_hostname, vmid, power_state):
         username=host.get('username'),
         password=host.get('password')
     )
-    stdin, stdout, stderr = client.exec_command(
+    _, stdout, _ = client.exec_command(
         f'vim-cmd vmsvc/power.{power_state} {vmid}')
     # TODO: 判定を作成
     '''
@@ -203,57 +195,41 @@ def set_vm_power(esxi_hostname, vmid, power_state):
 
 
 def create_vm(
-    vm_name='ecoman-example3',
-    vm_ram_mb=512,
-    vm_cpu=1,
-    vm_storage_gb=30,
-    vm_network_name="private",
-    vm_store_path="/vmfs/volumes/StoreNAS-Jasmine/",
-    vm_iso_path="/vmfs/volumes/StoreNAS-Public/os-images/custom/ubuntu-18.04.4-server-amd64-preseed.20190824.040414.iso",
-    esxi_node_name="jasmine",
-    author="unknown",
-    tags=[],
-    comment=""
-
-
-):
+    name: str,  # 'ecoman-example3'
+    ram_mb: int,  # 512
+    cpu_cores: int,  # 1
+    storage_gb: int,  # 30
+    network_port_group: str,  # "private"
+    store_path: pathlib.Path,  # "/vmfs/volumes/StoreNAS-Jasmine/"
+    iso_path: pathlib.Path,  # "/vmfs/volumes/StoreNAS-Public/xxx.iso"
+    esxi_nodename: str,  # "jasmine"
+    comment: str
+) -> Tuple[channel.ChannelFile, channel.ChannelStderrFile]:
     """ VMを作成 """
-    hostinfo = get_esxi_nodes().get(esxi_node_name)
+
+    hostinfo = load_config.get_esxi_nodes().get(esxi_nodename)
     client.connect(
         hostname=hostinfo.get('addr'),
         username=hostinfo.get('username'),
         password=hostinfo.get('password')
     )
 
-    # default liux password
-    USERNAME = "cdsl"
-    PASSWORD = "tokyo-univ-of-tech-2019"
-    CONCAT_TAGS = ', '.join([f"|22{t}|22" for t in tags])
-
-    import datetime
-    dt_now = datetime.datetime.now()
-    CUR_DATE = dt_now.strftime('%Y-%m-%d %H:%M:%S')
+    # dt_now = datetime.datetime.now()
+    # CUR_DATE = dt_now.strftime('%Y-%m-%d %H:%M:%S')
 
     concat_payload = comment
-    # concat_payload = comment
-    # + "|0A<info>|0A{|0A  |22author|22: |22" + author \
-    #         + "|22,|0A  |22user|22: |22" + USERNAME + "|22,|0A  |22password|22: |22" \
-    #         + PASSWORD + "|22,|0A  |22created_at|22: |22" + CUR_DATE + "|22,|0A  " \
-    #         + "|22tag|22: [ " + CONCAT_TAGS + " ]|0A}|0A</info>"
-    # print("payload: ", concat_payload)
-    # catコマンドのインデントは変えると動かなくなる
     cmd = f"""
-    vmid=`vim-cmd vmsvc/createdummyvm {vm_name} {vm_store_path}`
-    cd {vm_store_path}{vm_name}
-    
-    sed -i -e '/^guestOS =/d' {vm_name}.vmx
-    cat << EOF >> {vm_name}.vmx
+    vmid=`vim-cmd vmsvc/createdummyvm {name} {store_path}`
+    cd {store_path}{name}
+    sed -i -e '/^guestOS =/d' {name}.vmx
+
+    cat << EOF >> {name}.vmx
 guestOS = "ubuntu-64"
-memsize = "{vm_ram_mb}"
-numvcpus = "{vm_cpu}"
+memsize = "{ram_mb}"
+numvcpus = "{cpu_cores}"
 ethernet0.addressType = "generated"
 ethernet0.generatedAddressOffset = "0"
-ethernet0.networkName = "{vm_network_name}"
+ethernet0.networkName = "{network_port_group}"
 ethernet0.pciSlotNumber = "160"
 ethernet0.present = "TRUE"
 ethernet0.uptCompatibility = "TRUE"
@@ -264,29 +240,20 @@ powerType.reset = "default"
 powerType.suspend = "soft"
 sata0.present = "TRUE"
 sata0:0.deviceType = "cdrom-image"
-sata0:0.fileName = "{vm_iso_path}"
+sata0:0.fileName = "{iso_path}"
 sata0:0.present = "TRUE"
 annotation = "{concat_payload}"
 EOF
 
-    rm {vm_name}-flat.vmdk  {vm_name}.vmdk
-    vmkfstools --createvirtualdisk {vm_storage_gb}G -d thin {vm_name}.vmdk
+    rm {name}-flat.vmdk  {name}.vmdk
+    vmkfstools --createvirtualdisk {storage_gb}G -d thin {name}.vmdk
     vim-cmd vmsvc/reload $vmid
     vim-cmd vmsvc/power.on $vmid
     """
+
     # print(cmd)
-    stdin, stdout, stderr = client.exec_command(cmd)
+    _, stdout, stderr = client.exec_command(cmd)
     return stdout, stderr
-
-
-def app_detail(uniq_id):
-    hostname, vmid = uniq_id.split('|')
-    return get_vm_detail(hostname, vmid)
-
-
-def app_set_power(uniq_id, power_state):
-    hostname, vmid = uniq_id.split('|')
-    return set_vm_power(hostname, vmid, power_state)
 
 
 def api_create_vm(specs: MachineSpec):
@@ -323,7 +290,7 @@ def api_create_vm(specs: MachineSpec):
         vm_network_name = "VM Network"
 
     # ESXi Node
-    conf = get_esxi_nodes()
+    conf = load_config.get_esxi_nodes()
     allow_nodes = tuple(conf.keys())
     if specs.get('esxi_node') and specs.get('esxi_node') in allow_nodes:
         esxi_node_name = specs.get('esxi_node')
