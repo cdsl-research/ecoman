@@ -12,13 +12,7 @@ from paramiko import channel
 
 import load_config
 import vim_cmd_parser
-
-
-class PowerStatus:
-    ON: str = "on"
-    OFF: str = "off"
-    SUSPEND: str = "suspend"
-    UNKNOWN: str = "unknown"
+import model
 
 
 """ Init ssh connecter """
@@ -38,29 +32,18 @@ client.load_system_host_keys()
 #         }))
 
 
-@dataclass
-class MachineDetail:
-    id: int
-    name: str
-    datastore: str
-    datastore_path: pathlib.Path
-    guest_os: str
-    vm_version: str
-    comment: str
-
-
-def get_vms_list() -> Dict[int, MachineDetail]:
+def get_vms_list() -> Dict[int, model.MachineDetail]:
     """ VMのリストを取得 """
 
     # VM情報一覧の2行目～を取得(ラベルを除外)
     _, stdout, _ = client.exec_command('vim-cmd vmsvc/getallvms')
-    vm_info: Dict[int, MachineDetail] = {}
+    vm_info: Dict[int, model.MachineDetail] = {}
     for line in stdout.readlines():
         # 数字から始まる行
         if re.match(r'^\d+', line):
             dat = line.strip('\n').split()
             vmid = int(dat[0])
-            vm_info[vmid] = MachineDetail(
+            vm_info[vmid] = model.MachineDetail(
                 id=vmid,
                 name=dat[1],
                 datastore=dat[2],
@@ -77,7 +60,7 @@ def get_vms_list() -> Dict[int, MachineDetail]:
     return vm_info
 
 
-def get_vms_power() -> Dict[int, PowerStatus]:
+def get_vms_power() -> Dict[int, model.PowerStatus]:
     """ VMの電源状態のリストを取得 """
 
     # VMの電源一覧を取得
@@ -89,18 +72,18 @@ def get_vms_power() -> Dict[int, PowerStatus]:
     """)
 
     # VMの電源一覧を整形
-    result: Dict[int, PowerStatus] = {}
+    result: Dict[int, model.PowerStatus] = {}
     for line in stdout.readlines():
         _vmid, state = line.split('|')
         vmid = int(_vmid)
         if 'Suspended' in state:
-            result[vmid] = PowerStatus.SUSPEND
+            result[vmid] = model.PowerStatus.SUSPEND
         elif 'Powered on' in state:
-            result[vmid] = PowerStatus.ON
+            result[vmid] = model.PowerStatus.ON
         elif 'Powered off' in state:
-            result[vmid] = PowerStatus.OFF
+            result[vmid] = model.PowerStatus.OFF
         else:
-            result[vmid] = PowerStatus.UNKNOWN
+            result[vmid] = model.PowerStatus.UNKNOWN
 
     return result
 
@@ -204,7 +187,7 @@ def create_vm(
     iso_path: pathlib.Path,  # "/vmfs/volumes/StoreNAS-Public/xxx.iso"
     esxi_nodename: str,  # "jasmine"
     comment: str
-) -> Tuple[channel.ChannelFile, channel.ChannelStderrFile]:
+) -> model.ProcessResult:
     """ VMを作成 """
 
     hostinfo = load_config.get_esxi_nodes().get(esxi_nodename)
@@ -253,89 +236,15 @@ EOF
 
     # print(cmd)
     _, stdout, stderr = client.exec_command(cmd)
-    return stdout, stderr
-
-
-def api_create_vm(specs: MachineSpec):
-    # NAME
-    if specs.name:
-        vm_name = specs.name
-    else:
-        import random
-        suffix = str(random.randint(0, 999)).zfill(3)
-        vm_name = f"machine-{suffix}"
-
-    # RAM
-    if specs.ram_mb >= 512:
-        vm_ram_mb = specs.ram_mb
-    else:
-        vm_ram_mb = 512
-
-    # CPU
-    if specs.cpu_cores >= 1:
-        vm_cpu = specs.cpu_cores
-    else:
-        vm_cpu = 1
-
-    # Storage
-    if specs.storage_gb >= 30:
-        vm_storage_gb = specs.storage_gb
-    else:
-        vm_storage_gb = 30
-
-    # Network
-    if specs.network_port_group:
-        vm_network_name = specs.network_port_group
-    else:
-        vm_network_name = "VM Network"
-
-    # ESXi Node
-    conf = load_config.get_esxi_nodes()
-    allow_nodes = tuple(conf.keys())
-    if specs.get('esxi_node') and specs.get('esxi_node') in allow_nodes:
-        esxi_node_name = specs.get('esxi_node')
-    else:
-        esxi_node_name = "jasmine"
-
-    # StorePath
-    # store_path_node = str.capitalize(esxi_node_name)
-    # vm_store_path = f"/vmfs/volumes/StoreNAS-{store_path_node}/"
-    # vm_store_path = f"/vmfs/volumes/datastore1/"
-    nodename = specs['esxi_node']
-    vm_store_path = conf[nodename]['datastore_path']
-
-    # ISO Path
-    # vm_iso_path = "/vmfs/volumes/StoreNAS-Public/os-images/custom/ubuntu-18.04.4-server-amd64-preseed.20190824.040414.iso"
-    vm_iso_path = "/vmfs/volumes/koyama-auto-install/ubuntu-2004-auto-20220105.iso"
-
-    # Tags
-    if specs.get('tags'):
-        tags = specs.get('tags')
-    else:
-        tags = []
-
-    # Comment
-    if specs.get('comment') and len(specs.get('comment')) > 0:
-        comment = specs.get('comment')
-    else:
-        comment = ""
-
-    # Author
-    if specs.get('author') and len(specs.get('author')) > 3:
-        author = specs.get('author')
-    else:
-        author = "anonymous"
-
-    stdout, stderr = create_vm(vm_name, vm_ram_mb, vm_cpu, vm_storage_gb,
-                               vm_network_name, vm_store_path, vm_iso_path, esxi_node_name,
-                               author, tags, comment)
     stdout_lines = stdout.readlines()
     stderr_lines = stderr.readlines()
-
     if len(stderr_lines) > 0:
         payload = ' '.join([line.strip() for line in stderr_lines])
         # slack_notify(f"[Error] {author} created {vm_name}. detail: {payload}")
-        return {"error": payload}
+        return {
+            "result": payload
+        }
+        return model.ProcessResult()
     else:
         payload = ' '.join([line.strip() for line in stdout_lines])
         # slack_notify(
