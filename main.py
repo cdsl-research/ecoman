@@ -88,37 +88,7 @@ def page_read_vm_detail(esxi_nodename: str, machine_id: int):
 
 @app.get("/v1/machine")
 def api_read_vm():
-    vm_formated_info = []
-    for hostname, param in connect.get_esxi_nodes().items():
-        try:
-            # VMにSSH接続
-            connect.client.connect(
-                hostname=param.get('addr'),
-                username=param.get('username'),
-                password=param.get('password')
-            )
-        except paramiko.ssh_exception.SSHException as e:
-            print(e)
-
-        # VM一覧を結合
-        vm_list = connect.get_vms_list()
-        vm_power = connect.get_vms_power()
-        vm_ip = connect.get_vms_ip()
-        for vm in vm_list:
-            vm['uniq_id'] = hostname + '|' + vm.get('id')
-            vm['esxi_host'] = hostname
-            vm['esxi_addr'] = param.get('addr')
-            try:
-                vm['power'] = vm_power[vm['id']]
-            except KeyError:
-                vm['power'] = 'error'
-            try:
-                vm['ipaddr'] = vm_ip[vm['id']]
-            except KeyError:
-                vm['ipaddr'] = 'unknown'
-        vm_formated_info.extend(vm_list)
-
-    return vm_formated_info
+    pass
 
 
 @dataclass
