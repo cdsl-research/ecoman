@@ -1,23 +1,23 @@
 from flask import Flask, render_template, escape, request, jsonify
 import json
 
-import connect
+import crawler.connecter as connecter
 
 
 app = Flask(__name__)
-app.config['JSON_AS_ASCII'] = False # JSONでの日本語文字化け対策
+app.config['JSON_AS_ASCII'] = False  # JSONでの日本語文字化け対策
 # app.jinja_env.filters['resolve_esxi_addr'] = lambda host: connect.app_resolve_esxi_addr(host)
-    
+
 
 @app.route('/', methods=['GET'])
 def top():
-    return render_template('top.html', title='TOP', machines=connect.app_top(), email=request.headers.get('X-Forwarded-Email'))
+    return render_template('top.html', title='TOP', machines=connecter.app_top(), email=request.headers.get('X-Forwarded-Email'))
 
 
 @app.route('/machine/<string:uniq_id>', methods=['GET'])
 def detail(uniq_id):
     uniq_id_safe = escape(uniq_id)
-    return render_template('detail.html', title='DETAIL: '+uniq_id_safe, uniq_id=uniq_id_safe, detail=connect.app_detail(uniq_id), email=request.headers.get('X-Forwarded-Email'))
+    return render_template('detail.html', title='DETAIL: '+uniq_id_safe, uniq_id=uniq_id_safe, detail=connecter.app_detail(uniq_id), email=request.headers.get('X-Forwarded-Email'))
 
 
 @app.route('/create', methods=['GET'])
@@ -26,12 +26,16 @@ def create_vm():
 
 
 """ Read Machines """
+
+
 @app.route('/v1/machine', methods=['GET'])
 def rest_read_vms():
-    return jsonify(connect.app_top())
+    return jsonify(connecter.app_top())
 
 
 """ Create Machine """
+
+
 @app.route('/v1/machine', methods=['POST'])
 def rest_create_vm():
     """
@@ -58,7 +62,7 @@ def rest_create_vm():
         "author": request.headers.get('X-Forwarded-Email') if request.headers.get('X-Forwarded-Email') else "Anonymous"
     }
     # return jsonify([]), 201
-    result = connect.api_create_vm(vm_spec)
+    result = connecter.api_create_vm(vm_spec)
     if result.get('error') is None:
         # correct
         return jsonify(result), 201
@@ -68,13 +72,17 @@ def rest_create_vm():
 
 
 """ Read a Machine """
+
+
 @app.route('/v1/machine/<string:uniq_id>', methods=['GET'])
 def rest_read_vm(uniq_id):
     uniq_id_safe = escape(uniq_id)
-    return jsonify(connect.app_detail(uniq_id))
+    return jsonify(connecter.app_detail(uniq_id))
 
 
 """ Update Machine Power """
+
+
 @app.route('/v1/machine/<string:uniq_id>/power', methods=['PUT'])
 def rest_update_vm_power(uniq_id):
     """
@@ -87,7 +95,7 @@ def rest_update_vm_power(uniq_id):
     # Get Request status
     power_state = payload.get('state')
     # Change status
-    result = connect.app_set_power(uniq_id, power_state)
+    result = connecter.app_set_power(uniq_id, power_state)
     return jsonify({"status": "ok", "detail": result})
 
 
@@ -99,4 +107,3 @@ if __name__ == '__main__':
         app.run(debug=True, host='0.0.0.0', port=3300)
     else:
         app.run(debug=True, host='127.0.0.1', port=3300)
-

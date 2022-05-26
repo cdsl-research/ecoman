@@ -12,9 +12,9 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from requests import request
 
-import connect
-import load_config
-import model
+import crawler.connecter as connecter
+import crawler.load_config as load_config
+import crawler.model as model
 
 
 @dataclass
@@ -37,7 +37,7 @@ def page_top(request: Request):
     for esxi_nodename, config in load_config.get_esxi_nodes().items():
         try:
             # VMにSSH接続
-            connect.client.connect(
+            connecter.client.connect(
                 hostname=config.addr,
                 username=config.username,
                 password=config.password
@@ -46,9 +46,9 @@ def page_top(request: Request):
             print(e)
 
         # VM一覧を結合
-        vm_list = connect.get_vms_list()
-        vm_power = connect.get_vms_power()
-        vm_ip = connect.get_vms_ip()
+        vm_list = connecter.get_vms_list()
+        vm_power = connecter.get_vms_power()
+        vm_ip = connecter.get_vms_ip()
 
         for vmid, machine_detail in vm_list.items():
             power = vm_power.get(vmid, "unknown")
@@ -81,7 +81,7 @@ def page_read_vm_detail(esxi_nodename: str, machine_id: int):
     return templates.TemplateResponse("detail.html", {
         "title": f"DETAIL: {esxi_nodename} {machine_id}",
         "uniq_id": machine_id,
-        "detail": connect.app_detail(f"{esxi_nodename}|{machine_id}"),
+        "detail": connecter.app_detail(f"{esxi_nodename}|{machine_id}"),
         "request": request
     })
 
@@ -113,7 +113,7 @@ def api_create_vm(machine_req_req: CreateMachineRequest):
         machine_req=machine_req_req_enc)
 
     # Create Virtual Machine
-    result: model.CreateMchineResult = connect.create_vm(
+    result: model.CreateMchineResult = connecter.create_vm(
         machine_req=machine_req)
     if result.status == model.ProcessResult.NG:  # failed
         print("Fail to create VM:", result.message)
@@ -187,7 +187,7 @@ def validate_machine_req(machine_req: CreateMachineRequest) -> model.CreateMachi
 
 @app.get("/v1/machine/{esxi_nodename}/{machine_id}")
 def api_read_vm(esxi_nodename: str, machine_id: int):
-    return connect.get_vm_detail(esxi_nodename, machine_id)
+    return connecter.get_vm_detail(esxi_nodename, machine_id)
 
 
 @app.put("/v1/machine/{esxi_nodename}/{machine_id}/power")
@@ -199,7 +199,7 @@ def api_update_vm_power(esxi_nodename: str, machine_id: int, request: Request):
     # Get Request status
     power_state = payload.get('state')
     # Change status
-    result: str = connect.set_vm_power(
+    result: str = connecter.set_vm_power(
         esxi_nodename=esxi_nodename,
         vmid=machine_id,
         power_state=power_state

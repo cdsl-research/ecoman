@@ -18,7 +18,6 @@ class MachineDetail:
 
 @dataclass
 class CreateMachineSpec:
-    """ """
     name: str
     ram_mb: int
     cpu_cores: int
@@ -46,12 +45,3 @@ class PowerStatus:
     OFF: str = "off"
     SUSPEND: str = "suspend"
     UNKNOWN: str = "unknown"
-
-
-@dataclass
-class HostsConfig:
-    addr: str
-    username: str
-    password: str
-    datastore_path: pathlib.Path
-    installer_iso_path: pathlib.Path

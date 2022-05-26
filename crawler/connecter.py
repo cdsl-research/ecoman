@@ -1,43 +1,50 @@
 import ipaddress
 import pathlib
 import re
+from dataclasses import dataclass
 from typing import Dict
 
 import paramiko
 
 import load_config
-import model
 import vim_cmd_parser
 
-""" Init ssh connecter """
-client = paramiko.SSHClient()
-client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-client.load_system_host_keys()
+
+@dataclass
+class MachineDetail:
+    id: int
+    name: str
+    datastore: str
+    datastore_path: pathlib.Path
+    guest_os: str
+    vm_version: str
+    comment: str
 
 
-# def slack_notify(message):
-#     """ Slack通知 """
-#     import requests
-#     import os
-#     SLACK_WEBHOOK = os.environ.get('SLACK_WEBHOOK')
-#     if SLACK_WEBHOOK:
-#         requests.post(SLACK_WEBHOOK, data=json.dumps({
-#             'text': message,  # 投稿するテキスト
-#         }))
+class PowerStatus:
+    ON: str = "on"
+    OFF: str = "off"
+    SUSPEND: str = "suspend"
+    UNKNOWN: str = "unknown"
 
 
-def get_vms_list() -> Dict[int, model.MachineDetail]:
+class ProcessResult:
+    OK: int = "ok"
+    NG: int = "ng"
+
+
+def get_vms_list(_client: paramiko.SSHClient) -> Dict[int, MachineDetail]:
     """ VMのリストを取得 """
 
     # VM情報一覧の2行目～を取得(ラベルを除外)
-    _, stdout, _ = client.exec_command('vim-cmd vmsvc/getallvms')
-    vm_info: Dict[int, model.MachineDetail] = {}
+    _, stdout, _ = _client.exec_command('vim-cmd vmsvc/getallvms')
+    vm_info: Dict[int, MachineDetail] = {}
     for line in stdout.readlines():
         # 数字から始まる行
         if re.match(r'^\d+', line):
             dat = line.strip('\n').split()
             vmid = int(dat[0])
-            vm_info[vmid] = model.MachineDetail(
+            vm_info[vmid] = MachineDetail(
                 id=vmid,
                 name=dat[1],
                 datastore=dat[2],
@@ -54,11 +61,11 @@ def get_vms_list() -> Dict[int, model.MachineDetail]:
     return vm_info
 
 
-def get_vms_power() -> Dict[int, model.PowerStatus]:
+def get_vms_power(_client: paramiko.SSHClient) -> Dict[int, PowerStatus]:
     """ VMの電源状態のリストを取得 """
 
     # VMの電源一覧を取得
-    _, stdout, _ = client.exec_command(r"""
+    _, stdout, _ = _client.exec_command(r"""
     for id in `vim-cmd vmsvc/getallvms | grep '^[0-9]\+' | awk '{print $1}'`
     do
       vim-cmd vmsvc/power.getstate $id | grep -v Retrieved | sed "s/^/$id|/g" &
@@ -66,26 +73,26 @@ def get_vms_power() -> Dict[int, model.PowerStatus]:
     """)
 
     # VMの電源一覧を整形
-    result: Dict[int, model.PowerStatus] = {}
+    result: Dict[int, PowerStatus] = {}
     for line in stdout.readlines():
         _vmid, state = line.split('|')
         vmid = int(_vmid)
         if 'Suspended' in state:
-            result[vmid] = model.PowerStatus.SUSPEND
+            result[vmid] = PowerStatus.SUSPEND
         elif 'Powered on' in state:
-            result[vmid] = model.PowerStatus.ON
+            result[vmid] = PowerStatus.ON
         elif 'Powered off' in state:
-            result[vmid] = model.PowerStatus.OFF
+            result[vmid] = PowerStatus.OFF
         else:
-            result[vmid] = model.PowerStatus.UNKNOWN
+            result[vmid] = PowerStatus.UNKNOWN
 
     return result
 
 
-def get_vms_ip() -> Dict[int, ipaddress.IPv4Address]:
+def get_vms_ip(_client: paramiko.SSHClient) -> Dict[int, ipaddress.IPv4Address]:
     """ VMのIPアドレスのリストを取得 """
 
-    _, stdout, _ = client.exec_command(r"""
+    _, stdout, _ = _client.exec_command(r"""
     for id in `vim-cmd vmsvc/getallvms | grep '^[0-9]\+' | awk '{print $1}'`
     do
       vim-cmd vmsvc/get.summary $id | grep ipAddress | grep -o \"[0-9a-f:\.]\\+\" | sed "s/\"//g;s/^/$id|/g" &
@@ -100,39 +107,40 @@ def get_vms_ip() -> Dict[int, ipaddress.IPv4Address]:
     return result
 
 
-def get_vm_detail(esxi_nodename: str, vmid: int):
+def get_vm_detail(_client: paramiko.SSHClient, esxi_nodename: str, vmid: int):
     """ 個別VMの詳細を取得 """
 
     conf = load_config.get_esxi_nodes()
     esxi_nodenames = tuple(conf.keys())  # get ESXi Node List
     assert esxi_nodename in esxi_nodenames, "Invalid esxi_nodename is specified in param"
 
-    esxi_node_info: model.HostsConfig = conf[esxi_nodename]
-    client.connect(
+    esxi_node_info: load_config.HostsConfig = conf[esxi_nodename]
+    _client.connect(
         hostname=esxi_node_info.addr,
         username=esxi_node_info.username,
         password=esxi_node_info.password
     )
-    _, stdout, _ = client.exec_command(f'vim-cmd vmsvc/get.summary {vmid}')
+    _, stdout, _ = _client.exec_command(f'vim-cmd vmsvc/get.summary {vmid}')
     vm_detail = vim_cmd_parser.parser(stdout.read().decode().split('\n'))
 
     return vm_detail
 
 
-def set_vm_power(esxi_nodename: str, vmid: int, power_state: model.PowerStatus) -> str:
+def set_vm_power(_client: paramiko.SSHClient, esxi_nodename: str, vmid: int, power_state: PowerStatus) -> str:
     """ 個別VMの電源を操作 """
 
-    host = load_config.get_esxi_nodes().get(esxi_nodename)
-    assert host is not None, "Undefined uniq_id."
+    esxi_node_info: load_config.HostsConfig = load_config.get_esxi_nodes()[
+        esxi_nodename]
+    assert esxi_node_info is not None, "Undefined uniq_id."
     POWER_STATE = ('on', 'off', 'shutdown', 'reset', 'reboot', 'suspend')
     assert power_state in POWER_STATE, "Invalid power state."
 
-    client.connect(
-        hostname=host.get('addr'),
-        username=host.get('username'),
-        password=host.get('password')
+    _client.connect(
+        hostname=esxi_node_info.get('addr'),
+        username=esxi_node_info.get('username'),
+        password=esxi_node_info.get('password')
     )
-    _, stdout, _ = client.exec_command(
+    _, stdout, _ = _client.exec_command(
         f'vim-cmd vmsvc/power.{power_state} {vmid}')
     # TODO: 判定を作成
     '''
@@ -148,6 +156,7 @@ def set_vm_power(esxi_nodename: str, vmid: int, power_state: model.PowerStatus) 
 
 
 def create_vm(
+    _client: paramiko.SSHClient,
     name: str,  # 'ecoman-example3'
     ram_mb: int,  # 512
     cpu_cores: int,  # 1
@@ -157,11 +166,11 @@ def create_vm(
     iso_path: pathlib.Path,  # "/vmfs/volumes/StoreNAS-Public/xxx.iso"
     esxi_nodename: str,  # "jasmine"
     comment: str
-) -> model.ProcessResult:
+) -> ProcessResult:
     """ VMを作成 """
 
     hostinfo = load_config.get_esxi_nodes().get(esxi_nodename)
-    client.connect(
+    _client.connect(
         hostname=hostinfo.get('addr'),
         username=hostinfo.get('username'),
         password=hostinfo.get('password')
@@ -205,7 +214,7 @@ EOF
     """
 
     # print(cmd)
-    _, stdout, stderr = client.exec_command(cmd)
+    _, stdout, stderr = _client.exec_command(cmd)
     stdout_lines = stdout.readlines()
     stderr_lines = stderr.readlines()
     if len(stderr_lines) > 0:
@@ -214,12 +223,14 @@ EOF
         return {
             "result": payload
         }
-        return model.ProcessResult()
+        # return ProcessResult()
     else:
         payload = ' '.join([line.strip() for line in stdout_lines])
         # slack_notify(
         #     f"[Success] {author} created {vm_name}. detail: {payload}")
-        return {"status": payload}
+        return {
+            "status": payload
+        }
 
 
 def main():

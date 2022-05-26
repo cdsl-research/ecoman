@@ -4,6 +4,7 @@ from collections import defaultdict
 
 _params = {}
 
+
 def setter(stack, value, before=None):
     # 値渡しにするため
     my_stack = list(stack)
