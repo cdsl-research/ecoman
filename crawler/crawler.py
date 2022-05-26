@@ -1,17 +1,37 @@
 import pathlib
 from dataclasses import asdict, dataclass
 from ipaddress import IPv4Address
-from typing import List
+from typing import List, Dict
+import re
 import os
 from datetime import datetime
+import ipaddress
+
 
 import paramiko
 from pymongo import MongoClient, UpdateOne
 from pymongo.errors import ConnectionFailure, OperationFailure
 
 from mongo_ipv4_codec import codec_options
-import connecter
 import load_config
+
+
+class PowerStatus:
+    ON: str = "on"
+    OFF: str = "off"
+    SUSPEND: str = "suspend"
+    UNKNOWN: str = "unknown"
+
+
+@dataclass
+class MachineDetail:
+    id: int
+    name: str
+    datastore: str
+    datastore_path: pathlib.Path
+    guest_os: str
+    vm_version: str
+    comment: str
 
 
 @dataclass
@@ -24,11 +44,86 @@ class MachineSpecCrawled:
     guest_os: str
     vm_version: str
     comment: str
-    power: connecter.PowerStatus
+    power: PowerStatus
     ip_address: IPv4Address
     esxi_node_name: str
     esxi_node_address: str
     updated_at: datetime
+
+
+
+def get_vms_list(_client: paramiko.SSHClient) -> Dict[int, MachineDetail]:
+    """ VMのリストを取得 """
+
+    # VM情報一覧の2行目～を取得(ラベルを除外)
+    _, stdout, _ = _client.exec_command('vim-cmd vmsvc/getallvms')
+    vm_info: Dict[int, MachineDetail] = {}
+    for line in stdout.readlines():
+        # 数字から始まる行
+        if re.match(r'^\d+', line):
+            dat = line.strip('\n').split()
+            vmid = int(dat[0])
+            vm_info[vmid] = MachineDetail(
+                id=vmid,
+                name=dat[1],
+                datastore=dat[2],
+                datastore_path=dat[3],
+                guest_os=dat[4],
+                vm_version=dat[5],
+                comment=' '.join(dat[6:])
+            )
+
+        # Vmidから始まる行
+        elif line.startswith("Vmid"):
+            continue
+
+    return vm_info
+
+
+def get_vms_power(_client: paramiko.SSHClient) -> Dict[int, PowerStatus]:
+    """ VMの電源状態のリストを取得 """
+
+    # VMの電源一覧を取得
+    _, stdout, _ = _client.exec_command(r"""
+    for id in `vim-cmd vmsvc/getallvms | grep '^[0-9]\+' | awk '{print $1}'`
+    do
+      vim-cmd vmsvc/power.getstate $id | grep -v Retrieved | sed "s/^/$id|/g" &
+    done
+    """)
+
+    # VMの電源一覧を整形
+    result: Dict[int, PowerStatus] = {}
+    for line in stdout.readlines():
+        _vmid, state = line.split('|')
+        vmid = int(_vmid)
+        if 'Suspended' in state:
+            result[vmid] = PowerStatus.SUSPEND
+        elif 'Powered on' in state:
+            result[vmid] = PowerStatus.ON
+        elif 'Powered off' in state:
+            result[vmid] = PowerStatus.OFF
+        else:
+            result[vmid] = PowerStatus.UNKNOWN
+
+    return result
+
+
+def get_vms_ip(_client: paramiko.SSHClient) -> Dict[int, IPv4Address]:
+    """ VMのIPアドレスのリストを取得 """
+
+    _, stdout, _ = _client.exec_command(r"""
+    for id in `vim-cmd vmsvc/getallvms | grep '^[0-9]\+' | awk '{print $1}'`
+    do
+      vim-cmd vmsvc/get.summary $id | grep ipAddress | grep -o \"[0-9a-f:\.]\\+\" | sed "s/\"//g;s/^/$id|/g" &
+    done
+    """)
+
+    result: Dict[int, IPv4Address] = {}
+    for line in stdout.readlines():
+        vmid, ipaddr = line.split('|')
+        result[int(vmid)] = IPv4Address(ipaddr.strip())
+
+    return result
 
 
 def crawl() -> List[MachineSpecCrawled]:
@@ -53,14 +148,14 @@ def crawl() -> List[MachineSpecCrawled]:
         #     print(e)
 
         # VM一覧を結合
-        vm_list: dict[int, connecter.MachineDetail] = connecter.get_vms_list(
+        vm_list: dict[int, MachineDetail] = get_vms_list(
             _client=client)
-        vm_power: dict[int, connecter.PowerStatus] = connecter.get_vms_power(
+        vm_power: dict[int, PowerStatus] = get_vms_power(
             _client=client)
-        vm_ip: dict[int, IPv4Address] = connecter.get_vms_ip(_client=client)
+        vm_ip: dict[int, IPv4Address] = get_vms_ip(_client=client)
 
         for vmid, machine_detail in vm_list.items():
-            power = vm_power.get(vmid, connecter.PowerStatus.UNKNOWN)
+            power = vm_power.get(vmid, PowerStatus.UNKNOWN)
             ipaddr = vm_ip.get(vmid, "")
             vm_info = asdict(machine_detail) | {
                 "power": power,
