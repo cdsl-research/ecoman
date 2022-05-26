@@ -19,9 +19,9 @@ class MachineSpecCrawled:
     vm_version: str
     comment: str
     power: connecter.PowerStatus
-    ipaddress: IPv4Address
+    ip_address: IPv4Address
     esxi_node_name: str
-    esxi_node_addr: str
+    esxi_node_address: str
 
 
 def main():
@@ -36,32 +36,35 @@ def main():
     for esxi_nodename, config in nodes_conf.items():
         # try:
         # VMにSSH接続
-        cl = client.connect(
-            hostname=config.addr,
+        client.connect(
+            config.addr,
             username=config.username,
-            key_filename=config.identity_file_path
+            key_filename=config.identity_file_path,
+            timeout=5.0
         )
         # except paramiko.ssh_exception.SSHException as e:
         #     print(e)
 
         # VM一覧を結合
         vm_list: dict[int, connecter.MachineDetail] = connecter.get_vms_list(
-            _client=cl)
+            _client=client)
         vm_power: dict[int, connecter.PowerStatus] = connecter.get_vms_power(
-            _client=cl)
-        vm_ip: dict[int, IPv4Address] = connecter.get_vms_ip(_client=cl)
+            _client=client)
+        vm_ip: dict[int, IPv4Address] = connecter.get_vms_ip(_client=client)
 
         for vmid, machine_detail in vm_list.items():
             power = vm_power.get(vmid, connecter.PowerStatus.UNKNOWN)
             ipaddr = vm_ip.get(vmid, "")
             vm_info = asdict(machine_detail) | {
                 "power": power,
-                "ipaddr": ipaddr,
+                "ip_address": ipaddr,
                 "esxi_node_name": esxi_nodename,
-                "esxi_node_addr": config.addr,
+                "esxi_node_address": config.addr,
             }
             spec = MachineSpecCrawled(**vm_info)
             machines_info.append(spec)
+        
+        # print(machines_info)
 
 
 if __name__ == "__main__":
