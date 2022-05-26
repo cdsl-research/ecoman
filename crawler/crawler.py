@@ -3,11 +3,13 @@ from dataclasses import asdict, dataclass
 from ipaddress import IPv4Address
 from typing import List
 import os
+from datetime import datetime
 
 import paramiko
 from pymongo import MongoClient, UpdateOne
 from pymongo.errors import ConnectionFailure, OperationFailure
 
+from mongo_ipv4_codec import codec_options
 import connecter
 import load_config
 
@@ -26,6 +28,7 @@ class MachineSpecCrawled:
     ip_address: IPv4Address
     esxi_node_name: str
     esxi_node_address: str
+    updated_at: datetime
 
 
 def crawl() -> List[MachineSpecCrawled]:
@@ -64,6 +67,7 @@ def crawl() -> List[MachineSpecCrawled]:
                 "ip_address": ipaddr,
                 "esxi_node_name": esxi_nodename,
                 "esxi_node_address": config.addr,
+                "updated_at": datetime.now()
             }
             spec = MachineSpecCrawled(**vm_info)
             machines_info.append(spec)
@@ -83,19 +87,15 @@ def register(machines_info: List[MachineSpecCrawled]):
     client = MongoClient(MONGO_CONNECTION_STRING)
     client.admin.command('ping')
     db = client[MONGO_DBNAME]
-    # collection = db["machines"]
-    from mongo_ipv4_codec import codec_options
     collection = db.get_collection("machines", codec_options=codec_options)
 
-    filter_ = {}
-    records = [asdict(msc) for msc in machines_info]
     bulk_replaces = [
         UpdateOne({
-            'id': rec['id'], 
-            'esxi_node_name': rec['esxi_node_name']
+            'id': rec.id, 
+            'esxi_node_name': rec.esxi_node_name
         }, {
-            '$set': rec
-        }, upsert=True) for rec in records
+            '$set': asdict(rec)
+        }, upsert=True) for rec in machines_info
     ]
     # print(records)
     collection.bulk_write(bulk_replaces)
