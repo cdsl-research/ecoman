@@ -1,18 +1,20 @@
-import pathlib
-from dataclasses import asdict, dataclass
-from ipaddress import IPv4Address
-from typing import List, Dict
-import re
 import os
+import pathlib
+import re
+import sys
+from dataclasses import asdict, dataclass
 from datetime import datetime
-import ipaddress
+from ipaddress import IPv4Address
+from typing import Dict, List
 
 import paramiko
 from pymongo import MongoClient, UpdateOne
-from pymongo.errors import ConnectionFailure, OperationFailure
 
-from mongo_ipv4_codec import codec_options
-import load_config
+dir_this_file = os.path.dirname(__file__)
+parent_dir = os.path.join(dir_this_file, '..')
+sys.path.append(parent_dir)
+
+from library import load_config, mongo_ipv4_codec  # noqa
 
 
 class PowerStatus:
@@ -214,7 +216,8 @@ def register(machines_info: List[MachineSpecCrawled]):
     client = MongoClient(MONGO_CONNECTION_STRING)
     client.admin.command('ping')
     db = client[MONGO_DBNAME]
-    collection = db.get_collection("machines", codec_options=codec_options)
+    collection = db.get_collection(
+        "machines", codec_options=mongo_ipv4_codec.codec_options)
 
     bulk_replaces = [
         UpdateOne({
