@@ -84,17 +84,23 @@ def page_top(request: Request):
 @app.get("/create", response_class=HTMLResponse)
 def page_create_vm(request: Request):
     return templates.TemplateResponse("create.html", {
-        "title": "CREATE VM",
+        "title": "Create VM",
         "request": request
     })
 
 
-@app.get("/machine/{esxi_nodename}/{machine_id}", response_class=HTMLResponse)
-def page_read_vm_detail(esxi_nodename: str, machine_id: int):
+@app.get("/machine/{esxi_node_name}/{machine_id}", response_class=HTMLResponse)
+def page_read_vm_detail(esxi_node_name: str, machine_id: int):
+    collection = db.get_collection(
+        "machines", codec_options=mongo_ipv4_codec.codec_options)
+    filter_ = {
+        "esxi_node_name": esxi_node_name,
+        "id": machine_id
+    }
+    entry = collection.find_one(filter_, {'_id': 0})
+
     return templates.TemplateResponse("detail.html", {
-        "title": f"DETAIL: {esxi_nodename} {machine_id}",
-        "uniq_id": machine_id,
-        "detail": None,
+        "title": f"Detail: {esxi_node_name} {machine_id}",
         "request": request
     })
 
