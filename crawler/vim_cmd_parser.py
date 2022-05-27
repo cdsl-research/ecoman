@@ -1,8 +1,4 @@
 import re
-from collections import defaultdict
-
-
-_params = {}
 
 
 def setter(stack, value, before=None):
