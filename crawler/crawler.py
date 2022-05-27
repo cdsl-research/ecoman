@@ -188,20 +188,30 @@ def crawl() -> List[MachineSpecCrawled]:
                 "esxi_node_address": config.addr,
                 "updated_at": datetime.now()
             }
-            spec = MachineSpecCrawled(**vm_info)
-            machines_info.append(spec)
+            try:
+                spec = MachineSpecCrawled(**vm_info)
+                machines_info.append(spec)
+            except Exception as e:
+                print("Fail to parse as MachineSpecCrawled:", vm_info)
+                continue
         
     # print(machines_info)
     return machines_info
 
 
 def register(machines_info: List[MachineSpecCrawled]):
-    MONGO_USERNAME = os.getenv("MONGO_USERNAME", "root")
-    MONGO_PASSWORD = os.getenv("MONGO_PASSWORD", "example")
+    MONGO_USERNAME = os.getenv("MONGO_USERNAME", "")
+    MONGO_PASSWORD = os.getenv("MONGO_PASSWORD", "")
     MONGO_DBNAME = os.getenv("MONGO_DBNAME", "ecoman")
     MONGO_HOST = os.getenv("MONGO_HOST", "127.0.0.1")
-    # MONGO_CONNECTION_STRING = f"mongodb://{MONGO_USERNAME}:{MONGO_PASSWORD}@{MONGO_HOST}"
-    MONGO_CONNECTION_STRING = f"mongodb://{MONGO_HOST}/"
+    if MONGO_USERNAME == "":
+        credential = ""
+    else:
+        credential = MONGO_USERNAME + ":"
+        if MONGO_PASSWORD:
+            credential += MONGO_PASSWORD
+        credential += "@"
+    MONGO_CONNECTION_STRING = f"mongodb://{credential}{MONGO_HOST}/"
 
     client = MongoClient(MONGO_CONNECTION_STRING)
     client.admin.command('ping')
