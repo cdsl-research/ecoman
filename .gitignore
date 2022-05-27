@@ -1,4 +1,5 @@
 hosts.yml
+id_rsa*
 
 
 # Byte-compiled / optimized / DLL files
