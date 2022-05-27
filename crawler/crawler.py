@@ -58,7 +58,7 @@ def get_vms_list(_client: paramiko.SSHClient) -> Dict[int, MachineDetail]:
     print("Start get_vms_list")
     # VM情報一覧の2行目～を取得(ラベルを除外)
     _, stdout, stderr = _client.exec_command('vim-cmd vmsvc/getallvms')
-    print("stderr:", stderr)
+    print("stderr:", stderr.read())
 
     vm_info: Dict[int, MachineDetail] = {}
     for line in stdout.readlines():
@@ -98,7 +98,7 @@ def get_vms_power(_client: paramiko.SSHClient) -> Dict[int, PowerStatus]:
       vim-cmd vmsvc/power.getstate $id | grep -v Retrieved | sed "s/^/$id|/g" &
     done
     """)
-    print("stderr:", stderr)
+    print("stderr:", stderr.read())
 
     # VMの電源一覧を整形
     result: Dict[int, PowerStatus] = {}
@@ -133,7 +133,7 @@ def get_vms_ip(_client: paramiko.SSHClient) -> Dict[int, IPv4Address]:
       vim-cmd vmsvc/get.summary $id | grep ipAddress | grep -o \"[0-9a-f:\.]\\+\" | sed "s/\"//g;s/^/$id|/g" &
     done
     """)
-    print("stderr:", stderr)
+    print("stderr:", stderr.read())
 
     result: Dict[int, IPv4Address] = {}
     for line in stdout.readlines():
@@ -159,7 +159,7 @@ def crawl() -> List[MachineSpecCrawled]:
     machines_info: List[MachineSpecCrawled] = []
     nodes_conf = load_config.get_esxi_nodes()
     for esxi_nodename, config in nodes_conf.items():
-        print("Connect to", esxi_nodename)
+        print("+++ Connect to", esxi_nodename, "+++")
         try:
             client.connect(
                 config.addr,
