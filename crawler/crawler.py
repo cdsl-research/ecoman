@@ -7,7 +7,6 @@ import os
 from datetime import datetime
 import ipaddress
 
-
 import paramiko
 from pymongo import MongoClient, UpdateOne
 from pymongo.errors import ConnectionFailure, OperationFailure
@@ -49,7 +48,6 @@ class MachineSpecCrawled:
     esxi_node_name: str
     esxi_node_address: str
     updated_at: datetime
-
 
 
 def get_vms_list(_client: paramiko.SSHClient) -> Dict[int, MachineSpec]:
@@ -194,7 +192,7 @@ def crawl() -> List[MachineSpecCrawled]:
             except Exception as e:
                 print("Fail to parse as MachineSpecCrawled:", vm_info)
                 continue
-        
+
     # print(machines_info)
     return machines_info
 
@@ -220,7 +218,7 @@ def register(machines_info: List[MachineSpecCrawled]):
 
     bulk_replaces = [
         UpdateOne({
-            'id': rec.id, 
+            'id': rec.id,
             'esxi_node_name': rec.esxi_node_name
         }, {
             '$set': asdict(rec)
@@ -228,7 +226,6 @@ def register(machines_info: List[MachineSpecCrawled]):
     ]
     # print(records)
     collection.bulk_write(bulk_replaces)
-
 
 
 def main():
