@@ -1,24 +1,23 @@
-import json
-import pathlib
-from dataclasses import dataclass, asdict
-from ipaddress import IPv4Address
-from typing import Literal
 import os
+import pathlib
+import sys
+from dataclasses import asdict, dataclass
 from datetime import datetime
+from ipaddress import IPv4Address
 
-import paramiko
 from fastapi import FastAPI, Request
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+from pymongo import MongoClient
 from requests import request
-from pymongo import MongoClient, UpdateOne
-from pymongo.errors import ConnectionFailure, OperationFailure
 
-from mongo_ipv4_codec import codec_options
+dir_this_file = os.path.dirname(__file__)
+parent_dir = os.path.join(dir_this_file, '..')
+sys.path.append(parent_dir)
 
-
+from library import mongo_ipv4_codec  # noqa
 
 
 MONGO_USERNAME = os.getenv("MONGO_USERNAME", "")
@@ -33,6 +32,7 @@ else:
         credential += MONGO_PASSWORD
     credential += "@"
 MONGO_CONNECTION_STRING = f"mongodb://{credential}{MONGO_HOST}/"
+
 
 client = MongoClient(MONGO_CONNECTION_STRING)
 client.admin.command('ping')
@@ -70,11 +70,12 @@ class MachineSpecCrawled:
 
 @app.get("/", response_class=HTMLResponse)
 def page_top(request: Request):
-    collection = db.get_collection("machines", codec_options=codec_options)
+    collection = db.get_collection(
+        "machines", codec_options=mongo_ipv4_codec.codec_options)
     response = list(collection.find({}, {'_id': 0}))
     result = sorted(response, key=lambda x: (x['esxi_node_name'], x['id']))
     return templates.TemplateResponse("top.html", {
-        "title": "TOP",
+        "title": "Top",
         "machines": result,
         "request": request
     })
@@ -93,27 +94,22 @@ def page_read_vm_detail(esxi_nodename: str, machine_id: int):
     return templates.TemplateResponse("detail.html", {
         "title": f"DETAIL: {esxi_nodename} {machine_id}",
         "uniq_id": machine_id,
-        "detail": connecter.app_detail(f"{esxi_nodename}|{machine_id}"),
+        "detail": None,
         "request": request
     })
 
 
-@app.get("/v1/machine")
-def api_read_vm():
-    pass
-
-
-@dataclass
-class CreateMachineRequest:
-    """ Request schema for creating a virtual machine """
-    name: str
-    ram_mb: int
-    cpu_cores: int
-    storage_gb: int
-    network_port_group: str
-    esxi_nodename: str
-    comment: str
-    author: str
+# @dataclass
+# class CreateMachineRequest:
+#     """ Request schema for creating a virtual machine """
+#     name: str
+#     ram_mb: int
+#     cpu_cores: int
+#     storage_gb: int
+#     network_port_group: str
+#     esxi_nodename: str
+#     comment: str
+#     author: str
 
 
 # @app.post("/v1/machine")
