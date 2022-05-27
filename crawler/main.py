@@ -1,3 +1,4 @@
+from http.client import REQUEST_URI_TOO_LONG
 import os
 import pathlib
 import re
@@ -5,10 +6,12 @@ import sys
 from dataclasses import asdict, dataclass
 from datetime import datetime
 from ipaddress import IPv4Address
-from typing import Dict, List
+from typing import Dict, List, Any
 
 import paramiko
 from pymongo import MongoClient, UpdateOne
+
+import vim_cmd_parser  # noqa
 
 dir_this_file = os.path.dirname(__file__)
 parent_dir = os.path.join(dir_this_file, '..')
@@ -52,6 +55,47 @@ class MachineSpecCrawled:
     updated_at: datetime
 
 
+def get_vm_detail(_client: paramiko.SSHClient, vmid: int) -> dict[str, Any]:
+    """ 個別VMの詳細を取得 """
+
+    vm_detail: dict[str, Any] = {}
+    _, stdout, _ = _client.exec_command(f'vim-cmd vmsvc/get.summary {vmid}')
+    result = vim_cmd_parser.parser(stdout.read().decode().split('\n'))
+
+    runtime = result["vim.vm.Summary"]["runtime"]
+    vm_detail["connection_state"] = runtime["connectionState"]
+    vm_detail["boot_time"] = runtime["bootTime"]
+    vm_detail["max_cpu_usage"] = runtime["maxCpuUsage"]
+    vm_detail["max_memory_usage"] = runtime["maxMemoryUsage"]
+
+    guest = result["vim.vm.Summary"]["guest"]
+    vm_detail["tools_status"] = guest["toolsStatus"]
+    vm_detail["hostname"] = guest["hostName"]
+    vm_detail["ip_address"] = guest["ipAddress"]
+
+    config = result["vim.vm.Summary"]["config"]
+    vm_detail["name"] = config["name"]
+    vm_detail["memory_size_mb"] = config["memorySizeMB"]
+    vm_detail["num_cpu"] = config["numCpu"]
+    vm_detail["num_ethernet_cards"] = config["numEthernetCards"]
+    vm_detail["num_virtual_disks"] = config["numVirtualDisks"]
+    vm_detail["guest_fullname"] = config["guestFullName"]
+
+    storage = result["vim.vm.Summary"]["storage"]
+    vm_detail["commited"] = storage["committed"]
+
+    quick_stats = result["vim.vm.Summary"]["quickStats"]
+    vm_detail["overall_cpu_usage"] = quick_stats["overallCpuUsage"]
+    vm_detail["guest_memory_usage"] = quick_stats["guestMemoryUsage"]
+    vm_detail["guest_heartbeat_status"] = quick_stats["guestHeartbeatStatus"]
+    vm_detail["granted_memory"] = quick_stats["grantedMemory"]
+    vm_detail["uptime_seconds"] = quick_stats["uptimeSeconds"]
+
+    vm_detail["overall_status"] = result["vim.vm.Summary"]["overallStatus"]
+
+    return vm_detail
+
+
 def get_vms_list(_client: paramiko.SSHClient) -> Dict[int, MachineSpec]:
     """ VMのリストを取得 """
 
@@ -76,8 +120,16 @@ def get_vms_list(_client: paramiko.SSHClient) -> Dict[int, MachineSpec]:
                     vm_version=dat[5],
                     comment=' '.join(dat[6:])
                 )
+
+                """ VMの詳細をクロール """
+                result = get_vm_detail(_client=_client, vmid=vmid)
+
+                # import json
+                # print(json.dumps(result, indent=4))
+
             except Exception as e:
                 print("Fail to create MachineSpec: dat=", dat)
+                print("Exception: ", e)
                 continue
 
         # Vmidから始まる行
