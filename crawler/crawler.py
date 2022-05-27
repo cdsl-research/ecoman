@@ -24,7 +24,7 @@ class PowerStatus:
 
 
 @dataclass
-class MachineDetail:
+class MachineSpec:
     id: int
     name: str
     datastore: str
@@ -52,7 +52,7 @@ class MachineSpecCrawled:
 
 
 
-def get_vms_list(_client: paramiko.SSHClient) -> Dict[int, MachineDetail]:
+def get_vms_list(_client: paramiko.SSHClient) -> Dict[int, MachineSpec]:
     """ VMのリストを取得 """
 
     print("Start get_vms_list")
@@ -60,14 +60,14 @@ def get_vms_list(_client: paramiko.SSHClient) -> Dict[int, MachineDetail]:
     _, stdout, stderr = _client.exec_command('vim-cmd vmsvc/getallvms')
     print("stderr:", stderr.read())
 
-    vm_info: Dict[int, MachineDetail] = {}
+    vm_info: Dict[int, MachineSpec] = {}
     for line in stdout.readlines():
         # 数字から始まる行
         if re.match(r'^\d+', line):
             try:
                 dat = line.strip('\n').split()
                 vmid = int(dat[0])
-                vm_info[vmid] = MachineDetail(
+                vm_info[vmid] = MachineSpec(
                     id=vmid,
                     name=dat[1],
                     datastore=dat[2],
@@ -77,7 +77,7 @@ def get_vms_list(_client: paramiko.SSHClient) -> Dict[int, MachineDetail]:
                     comment=' '.join(dat[6:])
                 )
             except Exception as e:
-                print("Fail to create MachineDetail: dat=", dat)
+                print("Fail to create MachineSpec: dat=", dat)
                 continue
 
         # Vmidから始まる行
@@ -172,7 +172,7 @@ def crawl() -> List[MachineSpecCrawled]:
             continue
 
         # VM一覧を結合
-        vm_list: dict[int, MachineDetail] = get_vms_list(
+        vm_list: dict[int, MachineSpec] = get_vms_list(
             _client=client)
         vm_power: dict[int, PowerStatus] = get_vms_power(
             _client=client)
