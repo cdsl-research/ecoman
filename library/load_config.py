@@ -24,8 +24,11 @@ def get_esxi_nodes() -> dict[str, HostsConfig]:
     if os.environ.get('HOSTS_PATH'):
         HOSTS_PATH = str(os.environ.get('HOSTS_PATH'))
     else:
-        HOSTS_PATH = "hosts.yml"
+        dir_this_file = os.path.dirname(__file__)
+        parent_dir = os.path.join(dir_this_file, '..')
+        HOSTS_PATH = os.path.join(parent_dir, "hosts.yml")
 
+    print("Load Config Path:", HOSTS_PATH)
     with open(HOSTS_PATH) as f:
         hosts_config = yaml.safe_load(f.read())
 
@@ -33,7 +36,10 @@ def get_esxi_nodes() -> dict[str, HostsConfig]:
     for esxi_nodename, conf in hosts_config.items():
         print("Validating:", esxi_nodename)
         try:
-            result[esxi_nodename] = HostsConfig(**conf)
+            hosts_conf = HostsConfig(**conf)
+            hosts_conf.identity_file_path = os.path.join(
+                parent_dir, hosts_conf.identity_file_path)
+            result[esxi_nodename] = hosts_conf
         except Exception as e:
             print("Fail to validate:", HOSTS_PATH)
             raise e
