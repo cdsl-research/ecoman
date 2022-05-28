@@ -1,12 +1,7 @@
 import os
-import pathlib
 import sys
-from dataclasses import asdict, dataclass
-from datetime import datetime
-from ipaddress import IPv4Address
 
 from fastapi import FastAPI, Request
-from fastapi.encoders import jsonable_encoder
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -16,9 +11,6 @@ from requests import request
 dir_this_file = os.path.dirname(__file__)
 parent_dir = os.path.join(dir_this_file, '..')
 sys.path.append(parent_dir)
-
-from library import mongo_ipv4_codec  # noqa
-
 
 MONGO_USERNAME = os.getenv("MONGO_USERNAME", "")
 MONGO_PASSWORD = os.getenv("MONGO_PASSWORD", "")
@@ -44,34 +36,9 @@ templates = Jinja2Templates(directory="templates")
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 
-class PowerStatus:
-    ON: str = "on"
-    OFF: str = "off"
-    SUSPEND: str = "suspend"
-    UNKNOWN: str = "unknown"
-
-
-@dataclass
-class MachineSpecCrawled:
-    """ Detail info for existing virtual machines """
-    id: int
-    name: str
-    datastore: str
-    datastore_path: pathlib.Path
-    guest_os: str
-    vm_version: str
-    comment: str
-    power: PowerStatus
-    ip_address: IPv4Address
-    esxi_node_name: str
-    esxi_node_address: str
-    updated_at: datetime
-
-
 @app.get("/", response_class=HTMLResponse)
 def page_top(request: Request):
-    collection = db.get_collection(
-        "machines", codec_options=mongo_ipv4_codec.codec_options)
+    collection = db.get_collection("machines")
     response = list(collection.find({}, {'_id': 0}))
     result = sorted(response, key=lambda x: (x['esxi_node_name'], x['id']))
     return templates.TemplateResponse("top.html", {
@@ -98,6 +65,7 @@ def page_read_vm_detail(esxi_node_name: str, machine_id: int):
         "id": machine_id
     }
     entry = collection.find_one(filter_, {'_id': 0})
+    print(entry)
 
     return templates.TemplateResponse("detail.html", {
         "title": f"Detail: {esxi_node_name} {machine_id}",

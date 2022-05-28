@@ -1,12 +1,11 @@
-from http.client import REQUEST_URI_TOO_LONG
 import os
 import pathlib
 import re
 import sys
 from dataclasses import asdict, dataclass
 from datetime import datetime
-from ipaddress import IPv4Address
-from typing import Dict, List, Any
+from ipaddress import IPv4Address, IPv6Address, ip_address
+from typing import Dict, List
 
 import paramiko
 from pymongo import MongoClient, UpdateOne
@@ -17,7 +16,7 @@ dir_this_file = os.path.dirname(__file__)
 parent_dir = os.path.join(dir_this_file, '..')
 sys.path.append(parent_dir)
 
-from library import load_config, mongo_ipv4_codec  # noqa
+from library import load_config  # noqa
 
 
 class PowerStatus:
@@ -33,7 +32,7 @@ class MachineDetail:
     boot_time: datetime  # "2022-04-19T11:27:12Z"
     tools_status: str  # "toolsOk"
     hostname: str  # "koyama-main"
-    ip_address: IPv4Address  # "192.168.100.236"
+    ip_address: str  # "192.168.100.236"
     name: str  # "koyama-main"
     memory_size_mb: int  # 4096
     num_cpu: int  # 2
@@ -82,12 +81,17 @@ def get_vm_detail(_client: paramiko.SSHClient, vmid: int) -> MachineDetail:
     else:
         power_status = PowerStatus.UNKNOWN
 
+    if guest["ipAddress"] is None:
+        ipaddress_ = ""
+    else:
+        ipaddress_ = guest["ipAddress"]
+
     vm_detail = MachineDetail(
         power=power_status,
         boot_time=runtime["bootTime"],
         tools_status=guest["toolsStatus"],
         hostname=guest["hostName"],
-        ip_address=guest["ipAddress"],
+        ip_address=ipaddress_,
         name=config["name"],
         memory_size_mb=config["memorySizeMB"],
         num_cpu=config["numCpu"],
@@ -206,8 +210,7 @@ def register(machines_info: List[MachineDetailForStore]):
     client = MongoClient(MONGO_CONNECTION_STRING)
     client.admin.command('ping')
     db = client[MONGO_DBNAME]
-    collection = db.get_collection(
-        "machines", codec_options=mongo_ipv4_codec.codec_options)
+    collection = db.get_collection("machines")
 
     bulk_replaces = [
         UpdateOne({
