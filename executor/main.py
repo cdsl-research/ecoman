@@ -78,7 +78,6 @@ def set_vm_power(esxi_node_name: str, vmid: int, power_state: PowerStatus) -> Re
             message=result
         )
 
-    client.close()
     return response
 
 
