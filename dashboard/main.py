@@ -40,6 +40,11 @@ def page_top(request: Request):
     return templates.TemplateResponse("top.html", {
         "title": "Top",
         "machines": result,
+        "threshold": {
+            "cpu": 5,
+            "ram_mb": 8192,
+            "storage_gb": 50,
+        },
         "request": request
     })
 

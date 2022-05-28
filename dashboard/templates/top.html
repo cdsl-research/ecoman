@@ -46,9 +46,27 @@
           {{ machine.uptime_seconds % 86400 % 3600 // 60 }}m
           {% endif %}
         </td>
-        <td>{{ machine.num_cpu }} [Core]</td>
-        <td>{{ machine.memory_size_mb // 1000 }} [GB]</td>
-        <td>{{ machine.storage_commited // (1000 ** 3) }} [GB]</td>
+        <td>
+          {% if machine.num_cpu >= threshold.cpu %}
+          <mark>{{ machine.num_cpu }} [Core]</mark>
+          {% else %}
+          {{ machine.num_cpu }} [Core]
+          {% endif %}
+        </td>
+        <td>
+          {% if machine.memory_size_mb >= threshold.ram_mb %}
+          <mark>{{ machine.memory_size_mb // 1000 }} [GB]</mark>
+          {% else %}
+          {{ machine.memory_size_mb // 1000 }} [GB]
+          {% endif %}
+        </td>
+        <td>
+          {% if machine.storage_commited // (1000 ** 3) > threshold.storage_gb %}
+          <mark>{{ machine.storage_commited // (1000 ** 3) }} [GB]</mark>
+          {% else %}
+          {{ machine.storage_commited // (1000 ** 3) }} [GB]
+          {% endif %}
+        </td>
         <td>{{ machine.comment }}</td>
       </tr>
       {% endfor %}
