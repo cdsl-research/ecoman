@@ -1,37 +1,6 @@
-import ipaddress
-import pathlib
-import re
-from dataclasses import dataclass
-from typing import Dict
-
-import paramiko
-
-import load_config
-import vim_cmd_parser
-
-
 # class ProcessResult:
 #     OK: int = "ok"
 #     NG: int = "ng"
-
-
-# def get_vm_detail(_client: paramiko.SSHClient, esxi_nodename: str, vmid: int):
-#     """ 個別VMの詳細を取得 """
-
-#     conf = load_config.get_esxi_nodes()
-#     esxi_nodenames = tuple(conf.keys())  # get ESXi Node List
-#     assert esxi_nodename in esxi_nodenames, "Invalid esxi_nodename is specified in param"
-
-#     esxi_node_info: load_config.HostsConfig = conf[esxi_nodename]
-#     _client.connect(
-#         hostname=esxi_node_info.addr,
-#         username=esxi_node_info.username,
-#         password=esxi_node_info.password
-#     )
-#     _, stdout, _ = _client.exec_command(f'vim-cmd vmsvc/get.summary {vmid}')
-#     vm_detail = vim_cmd_parser.parser(stdout.read().decode().split('\n'))
-
-#     return vm_detail
 
 
 # def set_vm_power(_client: paramiko.SSHClient, esxi_nodename: str, vmid: int, power_state: PowerStatus) -> str:
@@ -139,4 +108,3 @@ import vim_cmd_parser
 #         return {
 #             "status": payload
 #         }
-
