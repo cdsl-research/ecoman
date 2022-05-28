@@ -1,5 +1,4 @@
 import os
-import sys
 
 from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse
@@ -8,9 +7,6 @@ from fastapi.templating import Jinja2Templates
 from pymongo import MongoClient
 from requests import request
 
-dir_this_file = os.path.dirname(__file__)
-parent_dir = os.path.join(dir_this_file, '..')
-sys.path.append(parent_dir)
 
 MONGO_USERNAME = os.getenv("MONGO_USERNAME", "")
 MONGO_PASSWORD = os.getenv("MONGO_PASSWORD", "")
@@ -58,8 +54,7 @@ def page_create_vm(request: Request):
 
 @app.get("/machine/{esxi_node_name}/{machine_id}", response_class=HTMLResponse)
 def page_read_vm_detail(esxi_node_name: str, machine_id: int):
-    collection = db.get_collection(
-        "machines", codec_options=mongo_ipv4_codec.codec_options)
+    collection = db.get_collection("machines")
     filter_ = {
         "esxi_node_name": esxi_node_name,
         "id": machine_id
