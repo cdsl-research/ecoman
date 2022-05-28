@@ -53,17 +53,17 @@ def page_create_vm(request: Request):
 
 
 @app.get("/machine/{esxi_node_name}/{machine_id}", response_class=HTMLResponse)
-def page_read_vm_detail(esxi_node_name: str, machine_id: int):
+def page_read_vm_detail(esxi_node_name: str, machine_id: int, request: Request):
     collection = db.get_collection("machines")
     filter_ = {
         "esxi_node_name": esxi_node_name,
         "id": machine_id
     }
-    entry = collection.find_one(filter_, {'_id': 0})
-    print(entry)
+    machine = collection.find_one(filter_, {'_id': 0})
 
     return templates.TemplateResponse("detail.html", {
         "title": f"Detail: {esxi_node_name} {machine_id}",
+        "machine": machine,
         "request": request
     })
 
