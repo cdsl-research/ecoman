@@ -1,117 +1,148 @@
 {% include "_header.html" %}
 
-<h3>Power</h2>
+<main>
+  <section>
+    <h3>Power</h2>
+      <table class="table">
+        <tr>
+          <td>Current Status</td>
+          <td><span id="current_power">{{ machine.power }}</span></td>
+        </tr>
+        <tr>
+          <td>Change Status</td>
+          <td>
+            <div class="input-group">
+              <div class="form-group">
+                <select class="form-select" id="power_state">
+                  <option value="on">ON</option>
+                  <option value="off">OFF</option>
+                  <option value="reset">RESET</option>
+                  <option value="reboot">REBOOT</option>
+                  <option value="shutdown">SHUTDOWN</option>
+                  <option value="suspend">SUSPEND</option>
+                </select>
+              </div>
+              <button class="btn btn-primary" id="commit">Commit</button>
+            </div>
+            <p id="message"></p>
+          </td>
+        </tr>
+      </table>
+  </section>
 
-  <table class="table">
-    <tr>
-      <td>Current Status</td>
-      <td><span id="current_power">{{ machine.power }}</span></td>
-    </tr>
-    <tr>
-      <td>Change Status</td>
-      <td>
-        <div class="input-group">
-          <div class="form-group">
-            <select class="form-select" id="power_state">
-              <option value="on">ON</option>
-              <option value="off">OFF</option>
-              <option value="reset">RESET</option>
-              <option value="reboot">REBOOT</option>
-              <option value="shutdown">SHUTDOWN</option>
-              <option value="suspend">SUSPEND</option>
-            </select>
-          </div>
-          <button class="btn btn-primary" id="commit">Commit</button>
-        </div>
-        <p id="message"></p>
-      </td>
-    </tr>
-  </table>
+  <section>
+    <h3>Machine Overview</h3>
+    <table class="table">
+      <tr>
+        <td>VM Name</td>
+        <td><b>{{ machine.name }}</b></td>
+      </tr>
+      <tr>
+        <td>IP Address</td>
+        <td>{{ machine.ip_address }}</td>
+      </tr>
+      <tr>
+        <td>VMware Tools Status</td>
+        <td>{{ machine.tools_status }}</td>
+      </tr>
+      <tr>
+        <td>VM Health Status</td>
+        <td>{{ machine.overall_status }}</td>
+      </tr>
+      <tr>
+        <td>BootTime</td>
+        <td>{{ machine.boot_time }}</td>
+      </tr>
+      <tr>
+        <td>Uptime</td>
+        <td>
+          {% if machine.uptime_seconds is none %}
+          -
+          {% else %}
+          {{ machine.uptime_seconds // 86400 }}d
+          {{ machine.uptime_seconds % 86400 // 3600}}h
+          {{ machine.uptime_seconds % 86400 % 3600 // 60 }}m
+          {% endif %}
+        </td>
+      </tr>
+      <tr>
+        <td>Datastore</td>
+        <td>{{ machine.datastore }}</td>
+      </tr>
+      <tr>
+        <td>Datastore Path</td>
+        <td>{{ machine.datastore_path }}</td>
+      </tr>
+    </table>
+  </section>
 
-  <h3>Detail</h3>
+  <section>
+    <h3>Hardware Spec</h3>
 
-  <table class="table">
-    <tr>
-      <td>VM Name</td>
-      <td><b>{{ machine.name }}</b></td>
-    </tr>
-    <tr>
-      <td>IP Address</td>
-      <td>{{ machine.ip_address }}</td>
-    </tr>
-    <tr>
-      <td>VMware Tools Status</td>
-      <td>{{ machine.tools_status }}</td>
-    </tr>
-    <tr>
-      <td>VM Health Status</td>
-      <td>{{ machine.overall_status }}</td>
-    </tr>
-    <tr>
-      <td>BootTime</td>
-      <td>{{ machine.boot_time }}</td>
-    </tr>
-    <tr>
-      <td>Max CPU Usage</td>
-      <td>{{ machine.max_cpu_usage }}</td>
-    </tr>
-    <tr>
-      <td>Datastore Path</td>
-      <td>{{ machine.datastore_path }}</td>
-    </tr>
-    <tr>
-      <td>Num of CPU</td>
-      <td>{{ machine.num_cpu }}</td>
-    </tr>
-    <tr>
-      <td>Memory Size</td>
-      <td>{{ machine.memory_size_mb }} [MB]</td>
-    </tr>
-    <tr>
-      <td>Num of Ethernet Cards</td>
-      <td>{{ machine.num_ethernet_cards }}</td>
-    </tr>
-    <tr>
-      <td>Num of Virtual Disks</td>
-      <td>{{ machine.num_virtual_disks }}</td>
-    </tr>
-    <tr>
-      <td>Guest OS Fullname</td>
-      <td>{{ machine.guest_fullname }}</td>
-    </tr>
-  </table>
+    <table class="table">
+      <tr>
+        <td>CPU</td>
+        <td>{{ machine.num_cpu }} [Core]</td>
+      </tr>
+      <tr>
+        <td>RAM</td>
+        <td>{{ machine.memory_size_mb // 1000 }} [GB]</td>
+      </tr>
+      <tr>
+        <td>Storage</td>
+        <td>{{ machine.storage_commited // (1000 ** 3) }} [GB]</td>
+      </tr>
+      <tr>
+        <td>Num of Ethernet Cards</td>
+        <td>{{ machine.num_ethernet_cards }}</td>
+      </tr>
+      <tr>
+        <td>Num of Virtual Disks</td>
+        <td>{{ machine.num_virtual_disks }}</td>
+      </tr>
+      <tr>
+        <td>Guest OS Fullname</td>
+        <td>{{ machine.guest_fullname }}</td>
+      </tr>
+    </table>
+  </section>
+</main>
 
-  <style>
-    .table {
-      max-width: 600px;
-    }
-  </style>
+<style>
+  main>section {
+    margin: 2em 0;
+  }
 
-  <script>
-    let setPower = function () {
-      const url = '/v1/machine/{{ uniq_id }}/power';
-      const powerState = document.getElementById('power_state').value;
-      const payload = { 'state': powerState };
+  .table {
+    max-width: 600px;
+  }
+</style>
 
-      fetch(url, {
-        method: 'PUT',
-        body: JSON.stringify(payload), // data can be `string` or {object}!
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      }).then(res => res.json())
-        .then(response => {
-          console.log('Success:', JSON.stringify(response));
-          document.getElementById('message').innerHTML = 'Success: ' + response['detail'];
-          document.getElementById('current_power').innerHTML = powerState.toUpperCase();
-        })
-        .catch(error => {
-          console.error('Error:', error)
-          document.getElementById('message').innerHTML = error;
-        });
-    }
+<script>
+  let setPower = function () {
+    const url = '/v1/machine/{{ uniq_id }}/power';
+    const powerState = document.getElementById('power_state').value;
+    const payload = { 'state': powerState };
 
-    let commitButton = document.getElementById('commit');
-    commitButton.addEventListener("click", setPower, false);
-  </script>
-  {% include "_footer.html" %}
+    fetch(url, {
+      method: 'PUT',
+      body: JSON.stringify(payload), // data can be `string` or {object}!
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    }).then(res => res.json())
+      .then(response => {
+        console.log('Success:', JSON.stringify(response));
+        document.getElementById('message').innerHTML = 'Success: ' + response['detail'];
+        document.getElementById('current_power').innerHTML = powerState.toUpperCase();
+      })
+      .catch(error => {
+        console.error('Error:', error)
+        document.getElementById('message').innerHTML = error;
+      });
+  }
+
+  let commitButton = document.getElementById('commit');
+  commitButton.addEventListener("click", setPower, false);
+</script>
+{% include "_footer.html" %}
