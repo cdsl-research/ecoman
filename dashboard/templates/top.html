@@ -1,55 +1,58 @@
 {% include "_header.html" %}
-<table class="table table-striped table-hover">
-  <thead>
-    <tr>
-      <th>Power</th>
-      <th>ESXi Node</th>
-      <th>VM ID</th>
-      <th>Name</th>
-      <th>IP Address</th>
-      <th>Uptime</th>
-      <th>CPU</th>
-      <th>RAM</th>
-      <th>Storage</th>
-      <th>Comment</th>
-    </tr>
-  </thead>
-  <tbody>
-    {% for machine in machines %}
-    <tr>
-      <td>
-        {% if machine.power | upper() == "ON" %}
-        <span class="label label-success">{{ machine.power | upper() }}</span>
-        {% elif machine.power | upper() == "OFF" %}
-        <span class="label label-error">{{ machine.power | upper() }}</span>
-        {% else %}
-        <span class="label label-warning">{{ machine.power | upper() }}</span>
-        {% endif %}
-      </td>
-      <td>{{ machine.esxi_node_name }}</td>
-      <td>{{ machine.id }}</a></td>
-      <td><a href="/machine/{{ machine.esxi_node_name }}/{{ machine.id }}">{{ machine.name }}</a></td>
-      <td>
-        {% if machine.ip_address %}
-        {{ machine.ip_address }}
-        {% else %}
-        -
-        {% endif %}
-      <td>
-        {% if machine.uptime_seconds is none %}
-        -
-        {% else %}
-        {{ machine.uptime_seconds // 86400 }}d
-        {{ machine.uptime_seconds % 86400 // 3600}}h
-        {{ machine.uptime_seconds % 86400 % 3600 // 60 }}m
-        {% endif %}
-      </td>
-      <td>{{ machine.num_cpu }} [Core]</td>
-      <td>{{ machine.memory_size_mb // 1000 }} [GB]</td>
-      <td>{{ machine.storage_commited // (1000 ** 3) }} [GB]</td>
-      <td>{{ machine.comment }}</td>
-    </tr>
-    {% endfor %}
-  </tbody>
-  <table>
-    {% include "_footer.html" %}
+
+<main>
+  <table class="table table-striped table-hover">
+    <thead>
+      <tr>
+        <th>Power</th>
+        <th>ESXi Node</th>
+        <th>VM ID</th>
+        <th>Name</th>
+        <th>IP Address</th>
+        <th>Uptime</th>
+        <th>CPU</th>
+        <th>RAM</th>
+        <th>Storage</th>
+        <th>Comment</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for machine in machines %}
+      <tr>
+        <td>
+          {% if machine.power | upper() == "ON" %}
+          <span class="label label-success">{{ machine.power | upper() }}</span>
+          {% elif machine.power | upper() == "OFF" %}
+          <span class="label label-error">{{ machine.power | upper() }}</span>
+          {% else %}
+          <span class="label label-warning">{{ machine.power | upper() }}</span>
+          {% endif %}
+        </td>
+        <td>{{ machine.esxi_node_name }}</td>
+        <td>{{ machine.id }}</a></td>
+        <td><a href="/machine/{{ machine.esxi_node_name }}/{{ machine.id }}">{{ machine.name }}</a></td>
+        <td>
+          {% if machine.ip_address %}
+          {{ machine.ip_address }}
+          {% else %}
+          -
+          {% endif %}
+        <td>
+          {% if machine.uptime_seconds is none %}
+          -
+          {% else %}
+          {{ machine.uptime_seconds // 86400 }}d
+          {{ machine.uptime_seconds % 86400 // 3600}}h
+          {{ machine.uptime_seconds % 86400 % 3600 // 60 }}m
+          {% endif %}
+        </td>
+        <td>{{ machine.num_cpu }} [Core]</td>
+        <td>{{ machine.memory_size_mb // 1000 }} [GB]</td>
+        <td>{{ machine.storage_commited // (1000 ** 3) }} [GB]</td>
+        <td>{{ machine.comment }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</main>
+{% include "_footer.html" %}
