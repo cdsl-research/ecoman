@@ -101,7 +101,7 @@ def get_vm_detail(_client: paramiko.SSHClient, vmid: int) -> MachineDetail:
         storage_commited=storage["committed"],
         overall_cpu_usage=quick_stats["overallCpuUsage"],
         guest_memory_usage=quick_stats["guestMemoryUsage"],
-        uptime_seconds=quick_stats["uptimeSeconds"],
+        uptime_seconds=quick_stats.get("uptimeSeconds", 0),
         overall_status=result["vim.vm.Summary"]["overallStatus"]
     )
     return vm_detail
