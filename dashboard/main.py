@@ -1,12 +1,13 @@
-from dataclasses import dataclass
 import os
+import xmlrpc.client
+from dataclasses import dataclass
 from typing import Literal
 
 from fastapi import FastAPI, Request
+from fastapi.encoders import jsonable_encoder
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
-from fastapi.encoders import jsonable_encoder
 from pymongo import MongoClient
 
 
@@ -92,7 +93,6 @@ def api_update_vm_power(esxi_node_name: str, machine_id: int,
                         power_status: RequestUpdatePowerStatus):
     power_state = jsonable_encoder(power_status)["status"]
 
-    import xmlrpc.client
     with xmlrpc.client.ServerProxy("http://localhost:8600/") as proxy:
         result = proxy.set_vm_power(esxi_node_name, machine_id, power_state)
     return result
