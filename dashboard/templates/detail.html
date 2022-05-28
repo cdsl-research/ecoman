@@ -2,32 +2,19 @@
 
 <main>
   <section>
-    <h3>Power</h2>
-      <table class="table">
-        <tr>
-          <td>Current Status</td>
-          <td><span id="current_power">{{ machine.power }}</span></td>
-        </tr>
-        <tr>
-          <td>Change Status</td>
-          <td>
-            <div class="input-group">
-              <div class="form-group">
-                <select class="form-select" id="power_state">
-                  <option value="on">ON</option>
-                  <option value="off">OFF</option>
-                  <option value="reset">RESET</option>
-                  <option value="reboot">REBOOT</option>
-                  <option value="shutdown">SHUTDOWN</option>
-                  <option value="suspend">SUSPEND</option>
-                </select>
-              </div>
-              <button class="btn btn-primary" id="commit">Commit</button>
-            </div>
-            <p id="message"></p>
-          </td>
-        </tr>
-      </table>
+    <fieldset>
+      <a href="https://{{ machine.esxi_node_address }}/ui/#/host/vms/{{ machine.id }}">
+        <button class="btn btn-primary">ESXi Console</button>
+      </a>
+    </fieldset>
+    <fieldset>
+      <div class="btn-group btn-group-block">
+        <button class="btn btn-success">Power ON</button>
+        <button class="btn btn-error">Shutdown</button>
+        <button class="btn">Suspend</button>
+        <button class="btn">Reboot</button>
+      </div>
+    </fieldset>
   </section>
 
   <section>
@@ -38,9 +25,25 @@
         <td><b>{{ machine.name }}</b></td>
       </tr>
       <tr>
-        <td>IP Address</td>
-        <td>{{ machine.ip_address }}</td>
+        <td>Power Status</td>
+        <td>{{ machine.power | upper }}</td>
       </tr>
+      <tr>
+        <td>IP Address</td>
+        <td>
+          {{ machine.ip_address }} <br>
+
+          <details>
+            <summary>SSH Command</summary>
+            <code>ssh USERNAME@{{ machine.ip_address }}</code>
+          </details>
+        </td>
+      </tr>
+      <tr>
+        <td>ESXi Node</td>
+        <td>{{ machine.esxi_node_name }} ({{ machine.esxi_node_address }})</td>
+      </tr>
+
       <tr>
         <td>VMware Tools Status</td>
         <td>{{ machine.tools_status }}</td>
@@ -64,14 +67,6 @@
           {{ machine.uptime_seconds % 86400 % 3600 // 60 }}m
           {% endif %}
         </td>
-      </tr>
-      <tr>
-        <td>Datastore</td>
-        <td>{{ machine.datastore }}</td>
-      </tr>
-      <tr>
-        <td>Datastore Path</td>
-        <td>{{ machine.datastore_path }}</td>
       </tr>
     </table>
   </section>
@@ -104,16 +99,34 @@
         <td>Guest OS Fullname</td>
         <td>{{ machine.guest_fullname }}</td>
       </tr>
+      <tr>
+        <td>Datastore</td>
+        <td>{{ machine.datastore }}</td>
+      </tr>
+      <tr>
+        <td>Datastore Path</td>
+        <td>{{ machine.datastore_path }}</td>
+      </tr>
     </table>
   </section>
 </main>
 
 <style>
-  main>section {
+  main fieldset {
+    margin: 0 2rem 0 0;
+    display: inline-block;
+  }
+
+  main section {
     margin: 2em 0;
   }
 
-  .table {
+  main table th,
+  main table td {
+    vertical-align: top;
+  }
+
+  main .table {
     max-width: 600px;
   }
 </style>
