@@ -1,19 +1,19 @@
 {% include "_header.html" %}
 
 <main>
-  <table class="table table-striped table-hover">
+  <table id="machines" class="table table-striped table-hover">
     <thead>
       <tr>
-        <th>Power</th>
-        <th>ESXi Node</th>
-        <th>VM ID</th>
-        <th>Name</th>
-        <th>IP Address</th>
-        <th>Uptime</th>
-        <th>CPU</th>
-        <th>RAM</th>
-        <th>Storage</th>
-        <th>Comment</th>
+        <th>Power▼</th>
+        <th>ESXi Node▼</th>
+        <th>VM ID▼</th>
+        <th>Name▼</th>
+        <th>IP Address▼</th>
+        <th>Uptime▼</th>
+        <th>CPU▼</th>
+        <th>RAM▼</th>
+        <th>Storage▼</th>
+        <th>Comment▼</th>
       </tr>
     </thead>
     <tbody>
@@ -55,4 +55,14 @@
     </tbody>
   </table>
 </main>
+
+<script src="https://code.jquery.com/jquery-3.6.0.slim.min.js"
+  integrity="sha256-u7e5khyithlIdTpu22PHhENmPcRdFiHRjhAuHcs05RI=" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.31.3/js/jquery.tablesorter.min.js"></script>
+<script>
+  $(function () {
+    $("#machines").tablesorter();
+  });
+</script>
+
 {% include "_footer.html" %}
