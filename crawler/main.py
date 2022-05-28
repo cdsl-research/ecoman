@@ -4,7 +4,6 @@ import re
 import sys
 from dataclasses import asdict, dataclass
 from datetime import datetime
-from ipaddress import IPv4Address, IPv6Address, ip_address
 from typing import Dict, List
 
 import paramiko
