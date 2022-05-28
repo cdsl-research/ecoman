@@ -19,6 +19,7 @@
 
   <section>
     <h3>Machine Overview</h3>
+
     <table class="table">
       <tr>
         <td>VM Name</td>
@@ -109,6 +110,21 @@
       </tr>
     </table>
   </section>
+
+  <section>
+    <h3>Hardware Metrics</h3>
+    <table class="table">
+      <tr>
+        <td>RAM Usage</td>
+        <td>{{ machine.guest_memory_usage / machine.memory_size_mb * 100 // 1 }} [%]</td>
+      </tr>
+      <tr>
+        <td>CPU Usage</td>
+        <td>{{ machine.overall_cpu_usage / machine.num_cpu // 1 }} [%]</td>
+      </tr>
+    </table>
+  </section>
+
 </main>
 
 <style>
