@@ -1,6 +1,5 @@
 from dataclasses import dataclass
 import os
-import pathlib
 import sys
 from xmlrpc.server import SimpleXMLRPCServer
 
@@ -26,7 +25,7 @@ class ProcessResult:
 
 
 @dataclass
-class PowerStatusResponse:
+class ResponseUpdatePowerStatus:
     result: ProcessResult
     request_status: PowerStatus
     message: str
@@ -38,7 +37,7 @@ client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 client.load_system_host_keys()
 
 
-def set_vm_power(esxi_node_name: str, vmid: int, power_state: PowerStatus) -> PowerStatusResponse:
+def set_vm_power(esxi_node_name: str, vmid: int, power_state: PowerStatus) -> ResponseUpdatePowerStatus:
     """ 個別VMの電源を操作 """
 
     esxi_node_info = load_config.get_esxi_nodes()[esxi_node_name]
@@ -65,7 +64,7 @@ def set_vm_power(esxi_node_name: str, vmid: int, power_state: PowerStatus) -> Po
 
     if len(result_err) > 0:
         print("Failed", "Err:", result_err)
-        response = PowerStatusResponse(
+        response = ResponseUpdatePowerStatus(
             result=ProcessResult.NG,
             request_status=power_state,
             message=result_err
@@ -73,7 +72,7 @@ def set_vm_power(esxi_node_name: str, vmid: int, power_state: PowerStatus) -> Po
     else:
         print("Success", "Result:", result)
         print("Err:", result_err)
-        response = PowerStatusResponse(
+        response = ResponseUpdatePowerStatus(
             result=ProcessResult.OK,
             request_status=power_state,
             message=result
