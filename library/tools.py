@@ -1,5 +1,6 @@
 import requests
-import os
+import json
+
 
 def slack_notify(message: str, slack_webhook: str):
     """ Slack通知 """
@@ -7,7 +8,7 @@ def slack_notify(message: str, slack_webhook: str):
     assert len(slack_webhook) > 20, "Invalid slack_webhook"
     try:
         requests.post(
-            SLACK_WEBHOOK, 
+            slack_webhook,
             data=json.dumps({
                 'text': message,  # 投稿するテキスト
             })
