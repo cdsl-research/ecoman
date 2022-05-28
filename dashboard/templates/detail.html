@@ -114,14 +114,18 @@
   <section>
     <h3>Hardware Metrics</h3>
     <table class="table">
+      {% if machine.guest_memory_usage is not none %}
       <tr>
         <td>RAM Usage</td>
         <td>{{ machine.guest_memory_usage / machine.memory_size_mb * 100 // 1 }} [%]</td>
       </tr>
+      {% endif %}
+      {% if machine.overall_cpu_usage is not none %}
       <tr>
         <td>CPU Usage</td>
         <td>{{ machine.overall_cpu_usage / machine.num_cpu // 1 }} [%]</td>
       </tr>
+      {% endif %}
     </table>
   </section>
 
