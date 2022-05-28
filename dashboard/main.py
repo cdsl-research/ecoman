@@ -3,7 +3,7 @@ import xmlrpc.client
 from dataclasses import dataclass
 from typing import Literal
 
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, HTTPException
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
@@ -16,6 +16,18 @@ class PowerStatus:
     OFF: str = "off"
     SUSPEND: str = "suspend"
     UNKNOWN: str = "unknown"
+
+
+class ProcessResult:
+    OK: int = "ok"
+    NG: int = "ng"
+
+
+# @dataclass
+# class ResponseUpdatePowerStatus:
+#     result: ProcessResult
+#     request_status: PowerStatus
+#     message: str
 
 
 @dataclass
@@ -92,9 +104,11 @@ def page_read_vm_detail(esxi_node_name: str, machine_id: int, request: Request):
 def api_update_vm_power(esxi_node_name: str, machine_id: int,
                         power_status: RequestUpdatePowerStatus):
     power_state = jsonable_encoder(power_status)["status"]
-
     with xmlrpc.client.ServerProxy("http://localhost:8600/") as proxy:
         result = proxy.set_vm_power(esxi_node_name, machine_id, power_state)
+
+    if result.get("result") == ProcessResult.NG:
+        raise HTTPException(status_code=503, detail=result.get("message"))
     return result
 
 
