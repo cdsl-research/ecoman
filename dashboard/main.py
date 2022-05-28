@@ -1,11 +1,25 @@
+from dataclasses import dataclass
 import os
+from typing import Literal
 
 from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+from fastapi.encoders import jsonable_encoder
 from pymongo import MongoClient
-from requests import request
+
+
+class PowerStatus:
+    ON: str = "on"
+    OFF: str = "off"
+    SUSPEND: str = "suspend"
+    UNKNOWN: str = "unknown"
+
+
+@dataclass
+class RequestUpdatePowerStatus:
+    status: Literal["on", "off", "suspend", "shutdown", "reset", "reboot"]
 
 
 MONGO_USERNAME = os.getenv("MONGO_USERNAME", "")
@@ -73,6 +87,17 @@ def page_read_vm_detail(esxi_node_name: str, machine_id: int, request: Request):
     })
 
 
+@app.put("/v1/machine/{esxi_node_name}/{machine_id}/power")
+def api_update_vm_power(esxi_node_name: str, machine_id: int,
+                        power_status: RequestUpdatePowerStatus):
+    power_state = jsonable_encoder(power_status)["status"]
+
+    import xmlrpc.client
+    with xmlrpc.client.ServerProxy("http://localhost:8600/") as proxy:
+        result = proxy.set_vm_power(esxi_node_name, machine_id, power_state)
+    return result
+
+
 # @dataclass
 # class CreateMachineRequest:
 #     """ Request schema for creating a virtual machine """
@@ -91,11 +116,11 @@ def page_read_vm_detail(esxi_node_name: str, machine_id: int, request: Request):
 #     # encode recieved request
 #     machine_req_req_enc = jsonable_encoder(machine_req_req)
 #     # validate and convert datamodel
-#     machine_req: model.CreateMachineSpec = validate_machine_req(
+#     machine_req: CreateMachineSpec = validate_machine_req(
 #         machine_req=machine_req_req_enc)
 
 #     # Create Virtual Machine
-#     result: model.CreateMchineResult = connecter.create_vm(
+#     result: CreateMchineResult = create_vm(
 #         machine_req=machine_req)
 #     if result.status == model.ProcessResult.NG:  # failed
 #         print("Fail to create VM:", result.message)
@@ -154,7 +179,7 @@ def page_read_vm_detail(esxi_node_name: str, machine_id: int, request: Request):
 #     comment = ", ".join(f"Author: '{machine_req.author}'",
 #                         f"Comment: '{machine_req.comment}'")
 
-#     return model.CreateMachineSpec(
+#     return CreateMachineSpec(
 #         name=name,
 #         ram_mb=ram_mb,
 #         cpu_cores=cpu_cores,
@@ -170,20 +195,3 @@ def page_read_vm_detail(esxi_node_name: str, machine_id: int, request: Request):
 # @app.get("/v1/machine/{esxi_nodename}/{machine_id}")
 # def api_read_vm(esxi_nodename: str, machine_id: int):
 #     return connecter.get_vm_detail(esxi_nodename, machine_id)
-
-
-# @app.put("/v1/machine/{esxi_nodename}/{machine_id}/power")
-# def api_update_vm_power(esxi_nodename: str, machine_id: int, request: Request):
-#     # Parse Request
-#     req_data = request.get_data()
-#     req_txt = req_data.decode('utf-8')
-#     payload = json.loads(req_txt)
-#     # Get Request status
-#     power_state = payload.get('state')
-#     # Change status
-#     result: str = connecter.set_vm_power(
-#         esxi_nodename=esxi_nodename,
-#         vmid=machine_id,
-#         power_state=power_state
-#     )
-#     return {"status": "ok", "detail": result}
