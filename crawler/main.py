@@ -5,6 +5,7 @@ import sys
 from dataclasses import asdict, dataclass
 from datetime import datetime
 from typing import Dict, List
+import time
 
 import paramiko
 from pymongo import MongoClient, UpdateOne
@@ -224,8 +225,17 @@ def register(machines_info: List[MachineDetailForStore]):
 
 
 def main():
-    c = crawl()
-    register(machines_info=c)
+    print("Starting crawler loop")
+    crawl_interval = int(os.getenv("CRAWLER_INTERVAL", "60"))
+    print("Crawl interval =", crawl_interval, "[sec]")
+
+    while True:
+        start_at = time.time()
+        c = crawl()
+        register(machines_info=c)
+        consumed = time.time() - start_at
+        print("waiting for next crawl:", consumed, "[sec]")
+        time.sleep(crawl_interval - consumed)
 
 
 if __name__ == "__main__":
