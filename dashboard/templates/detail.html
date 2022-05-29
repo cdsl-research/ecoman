@@ -9,12 +9,19 @@
     </fieldset>
     <fieldset>
       <div class="btn-group btn-group-block">
-        <button class="btn btn-success">Power ON</button>
-        <button class="btn btn-error">Shutdown</button>
-        <button class="btn">Suspend</button>
-        <button class="btn">Reboot</button>
+        <button class="btn btn-success power-action" name="on">Power ON</button>
+        <button class="btn btn-error power-action" name="shutdown">Shutdown</button>
+        <button class="btn power-action" name="suspend">Suspend</button>
+        <button class="btn power-action" name="reboot">Reboot</button>
       </div>
     </fieldset>
+  </section>
+
+  <section>
+    <div id="top-message-box" class="toast toast-primary">
+      <button id="close-top-message-box" class="btn btn-clear float-right"></button>
+      <p id="top-message"></p>
+    </div>
   </section>
 
   <section>
@@ -149,13 +156,16 @@
   main .table {
     max-width: 600px;
   }
+
+  #top-message-box {
+    display: none;
+  }
 </style>
 
 <script>
-  let setPower = function () {
-    const url = '/v1/machine/{{ uniq_id }}/power';
-    const powerState = document.getElementById('power_state').value;
-    const payload = { 'state': powerState };
+  let setPower = (powerState) => {
+    const url = '/v1/machine/{{ machine.esxi_node_name }}/{{ machine.id }}/power';
+    const payload = { 'status': powerState };
 
     fetch(url, {
       method: 'PUT',
@@ -163,19 +173,54 @@
       headers: {
         'Content-Type': 'application/json'
       }
-    }).then(res => res.json())
-      .then(response => {
-        console.log('Success:', JSON.stringify(response));
-        document.getElementById('message').innerHTML = 'Success: ' + response['detail'];
-        document.getElementById('current_power').innerHTML = powerState.toUpperCase();
-      })
-      .catch(error => {
-        console.error('Error:', error)
-        document.getElementById('message').innerHTML = error;
-      });
-  }
+    }).then(response => {
+      const topMessage = document.getElementById('top-message');
 
-  let commitButton = document.getElementById('commit');
-  commitButton.addEventListener("click", setPower, false);
+      if (!response.ok) {
+        // error
+        response.json().then(function (result) {
+          console.log("Failed", result.detail);
+          topMessage.innerText = 'Failed: ' + result.detail;
+        });
+
+        const topMessageBox = document.getElementById("top-message-box")
+        topMessageBox.classList.add("toast-error");
+        topMessageBox.style.display = "block";
+      } else {
+        // success
+        response.json().then(function (result) {
+          console.log('Success:', result.request_status);
+          topMessage.innerText = 'Success: ' + result.request_status;
+        });
+
+        const topMessageBox = document.getElementById("top-message-box")
+        topMessageBox.classList.add("toast-success");
+        topMessageBox.style.display = "block";
+      }
+    })
+      .catch(error => {
+        console.error('Error:', error);
+        const topMessage = document.getElementById('top-message');
+        topMessage.innerText = error;
+
+        const topMessageBox = document.getElementById("top-message-box")
+        topMessageBox.classList.add("toast-error");
+        topMessageBox.style.display = "block";
+      });
+  };
+
+  const powerActions = document.querySelectorAll('.power-action');
+  powerActions.forEach((target) => {
+    target.addEventListener("click", (e) => {
+      let powerStatus = e.target.name;
+      setPower(powerStatus);
+    })
+  });
+
+  const closeTopMessage = document.getElementById("close-top-message-box");
+  closeTopMessage.addEventListener("click", () => {
+    const topMessageBox = document.getElementById("top-message-box");
+    topMessageBox.style.display = "none";
+  });
 </script>
 {% include "_footer.html" %}
