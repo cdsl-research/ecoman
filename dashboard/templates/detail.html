@@ -93,7 +93,7 @@
     </table>
   </section>
 
-  <section name="hardware-spec" class="sub-page">
+  <section name="hardware-spec" class="sub-page invisible">
     <table class="table">
       <tr>
         <td>CPU</td>
@@ -130,7 +130,7 @@
     </table>
   </section>
 
-  <section name="hardware-metrics" class="sub-page">
+  <section name="hardware-metrics" class="sub-page invisible">
     <table class="table">
       {% if machine.guest_memory_usage is not none %}
       <tr>
@@ -169,6 +169,10 @@
   }
 
   #top-message-box {
+    display: none;
+  }
+
+  .invisible {
     display: none;
   }
 </style>
@@ -252,12 +256,12 @@
     const subPages = document.querySelectorAll(".sub-page");
     subPages.forEach((target) => {
       if (targetPage.name === target.attributes.name.nodeValue) {
-        target.style.display = "block";
+        target.classList.remove("invisible");
       } else {
-        target.style.display = "none";
+        target.classList.add("invisible");
       }
     })
-  }
+  };
 
   // Reset navigation select
   const resetActiveItem = () => {
