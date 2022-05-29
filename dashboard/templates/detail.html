@@ -41,10 +41,12 @@
         <td>
           {{ machine.ip_address }} <br>
 
+          {% if machine.ip_address != "" %}
           <details>
             <summary>SSH Command</summary>
             <code>ssh USERNAME@{{ machine.ip_address }}</code>
           </details>
+          {% endif %}
         </td>
       </tr>
       <tr>
