@@ -25,8 +25,20 @@
   </section>
 
   <section>
-    <h3>Machine Overview</h3>
+    <ul class="tab">
+      <li class="tab-item">
+        <a href="#" name="machine-overview" class="menu-item active">Machine Overview</a>
+      </li>
+      <li class="tab-item">
+        <a href="#" name="hardware-spec" class="menu-item">Hardware Spec</a>
+      </li>
+      <li class="tab-item">
+        <a href="#" name="hardware-metrics" class="menu-item">Hardware Metrics</a>
+      </li>
+    </ul>
+  </section>
 
+  <section name="machine-overview" class="sub-page">
     <table class="table">
       <tr>
         <td>VM Name</td>
@@ -81,9 +93,7 @@
     </table>
   </section>
 
-  <section>
-    <h3>Hardware Spec</h3>
-
+  <section name="hardware-spec" class="sub-page">
     <table class="table">
       <tr>
         <td>CPU</td>
@@ -120,8 +130,7 @@
     </table>
   </section>
 
-  <section>
-    <h3>Hardware Metrics</h3>
+  <section name="hardware-metrics" class="sub-page">
     <table class="table">
       {% if machine.guest_memory_usage is not none %}
       <tr>
@@ -165,6 +174,7 @@
 </style>
 
 <script>
+  // Set power status
   let setPower = (powerState) => {
     const url = '/v1/machine/{{ machine.esxi_node_name }}/{{ machine.id }}/power';
     const payload = { 'status': powerState };
@@ -185,7 +195,7 @@
           topMessage.innerText = 'Failed: ' + result.detail;
         });
 
-        const topMessageBox = document.getElementById("top-message-box")
+        const topMessageBox = document.getElementById("top-message-box");
         topMessageBox.classList.add("toast-error");
         topMessageBox.style.display = "block";
       } else {
@@ -195,7 +205,7 @@
           topMessage.innerText = 'Success: ' + result.request_status;
         });
 
-        const topMessageBox = document.getElementById("top-message-box")
+        const topMessageBox = document.getElementById("top-message-box");
         topMessageBox.classList.add("toast-success");
         topMessageBox.style.display = "block";
       }
@@ -205,24 +215,55 @@
         const topMessage = document.getElementById('top-message');
         topMessage.innerText = error;
 
-        const topMessageBox = document.getElementById("top-message-box")
+        const topMessageBox = document.getElementById("top-message-box");
         topMessageBox.classList.add("toast-error");
         topMessageBox.style.display = "block";
       });
   };
 
+  // Press power action button
   const powerActions = document.querySelectorAll('.power-action');
   powerActions.forEach((target) => {
     target.addEventListener("click", (e) => {
-      let powerStatus = e.target.name;
+      const powerStatus = e.target.name;
       setPower(powerStatus);
     })
   });
 
+  // Close button on top message box
   const closeTopMessage = document.getElementById("close-top-message-box");
   closeTopMessage.addEventListener("click", () => {
     const topMessageBox = document.getElementById("top-message-box");
     topMessageBox.style.display = "none";
   });
+
+  // Change navigation
+  const menuItems = document.querySelectorAll(".menu-item");
+  menuItems.forEach((target) => {
+    target.addEventListener("click", (e) => {
+      resetActiveItem();
+      e.target.classList.add("active");
+      changeSubPage(e.target);
+    })
+  });
+
+  // Change sub pages
+  const changeSubPage = (targetPage) => {
+    const subPages = document.querySelectorAll(".sub-page");
+    subPages.forEach((target) => {
+      if (targetPage.name === target.attributes.name.nodeValue) {
+        target.style.display = "block";
+      } else {
+        target.style.display = "none";
+      }
+    })
+  }
+
+  // Reset navigation select
+  const resetActiveItem = () => {
+    menuItems.forEach((target) => {
+      target.classList.remove("active")
+    });
+  };
 </script>
 {% include "_footer.html" %}
