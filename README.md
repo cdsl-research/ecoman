@@ -10,6 +10,7 @@ It provides administrators to view virtual machine lists with web user interface
 - View virtual machine lists over multiple ESXi Nodes
 - Create a virtual machine via Web UI
 - Set power status via Web UI
+- Emphasize several machines which have large hardware resources in Web UI
 
 ## Requirements
 
