@@ -11,13 +11,33 @@ It provides administrators to view virtual machine lists with web user interface
 - Create a virtual machine via Web UI
 - Set power status via Web UI
 
+## Requirements
+
+- Python 3.9 or later
+    - Paramiko
+    - FastAPI
+    - PyMongo
+- MongoDB 5.0 or later
+
 ## Getting Started
+
+ECoMan has several ways for running as below.
+
+- Linux Machine (Genral)
+- Docker Compose (Easy)
+- Kubernetes
+
+### Linux Machine
 
 TBD
 
-```
-uvicorn main:app --reload
-```
+### Docker Compose
+
+TBD
+
+### Kubernetes
+
+TBD
 
 ## Architecture
 
