@@ -24,7 +24,7 @@ It provides administrators to view virtual machine lists with web user interface
 
 ECoMan has several ways for running as below.
 
-- Linux Machine (Genral)
+- Linux Machine (General)
 - Docker Compose (Easy)
 - Kubernetes
 
