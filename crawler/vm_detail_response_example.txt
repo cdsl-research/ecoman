@@ -1,3 +1,5 @@
+# This is an example command result for 'vim-cmd vmsvc/get.summary'
+
 {
     "vim.vm.Summary": {
         "vm": "vim.VirtualMachine:14",
