@@ -25,5 +25,6 @@ ECoMan has following system archtiecture.
 
 - `crawler` fetches VMs info via SSH and regist VMs info to MongoDB. This component works by polling.
 - `dashboard` provides Web UI to Administrators. When Administrator accesses `dashboard`, it fetches VMs info from MongoDB and returns to Administrator.
+- `executor` receives actions, "Create VM" or "Update VM's power", from `dashboard` and does the actions via SSH.
 
 <img src="architecture.png">
