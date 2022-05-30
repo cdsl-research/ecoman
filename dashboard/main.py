@@ -83,6 +83,16 @@ def page_top(request: Request):
     })
 
 
+@app.get("/nodes", response_class=HTMLResponse)
+def page_esxi_nodes(request: Request):
+    esxi_nodes = load_config.get_esxi_nodes()
+    return templates.TemplateResponse("node.html", {
+        "title": "ESXi Nodes",
+        "request": request,
+        "esxi_nodes": esxi_nodes
+    })
+
+
 @app.get("/create", response_class=HTMLResponse)
 def page_create_vm(request: Request):
     esxi_nodes = load_config.get_esxi_nodes()
@@ -93,7 +103,7 @@ def page_create_vm(request: Request):
     return templates.TemplateResponse("create.html", {
         "title": "Create VM",
         "request": request,
-        "esxi_nodes": active_esxi_nodes
+        "esxi_nodes": esxi_nodes
     })
 
 
