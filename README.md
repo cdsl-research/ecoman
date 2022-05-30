@@ -40,6 +40,23 @@ TBD
 
 TBD
 
+## Optional Parameters
+
+Environment Variables:
+
+| Name                           | Default Value | Type    | Description | Component |
+| ---                            | ---           | ---     | ---         | crawler, dashboard |
+| MONGO_USERNAME                 |               | String  | If this value is empty, ECoMan connects to MongoDB without authentication. | crawler |
+| MONGO_PASSWORD                 |               | String  |             | crawler, dashboard |
+| MONGO_DBNAME                   | ecoman        | String  |             | crawler, dashboard |
+| MONGO_HOST                     | 127.0.0.1     | String  |             | crawler, dashboard |
+| CRAWLER_INTERVAL               | 60            | Integer |             | crawler |
+| DASHBOARD_THRESHOLD_CPU        | 5             | Integer | CPU usage on VM lists is emphasized by this value. | dashboard |
+| DASHBOARD_THRESHOLD_RAM_MB     | 8192          | Integer | RAM usage on VM lists is emphasized by this value. | dashboard |
+| DASHBOARD_THRESHOLD_STORAGE_GB | 50            | Integer | Storage usage on VM lists is emphasized by this value. | dashboard |
+| EXECUTOR_ADDRESS               | 127.0.0.1     | String  |             | dashboard |
+| EXECUTOR_PORT                  | 8600          | Integer |             | dashboard, executor |
+
 ## Architecture
 
 ECoMan has following system archtiecture.
