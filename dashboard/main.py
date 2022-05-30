@@ -2,6 +2,7 @@ import os
 import xmlrpc.client
 from dataclasses import dataclass
 from typing import Literal
+import sys
 
 from fastapi import FastAPI, Request, HTTPException
 from fastapi.encoders import jsonable_encoder
@@ -9,6 +10,12 @@ from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from pymongo import MongoClient
+
+dir_this_file = os.path.dirname(__file__)
+parent_dir = os.path.join(dir_this_file, '..')
+sys.path.append(parent_dir)
+
+from library import load_config  # noqa
 
 
 class PowerStatus:
@@ -78,9 +85,15 @@ def page_top(request: Request):
 
 @app.get("/create", response_class=HTMLResponse)
 def page_create_vm(request: Request):
+    esxi_nodes = load_config.get_esxi_nodes()
+    active_esxi_nodes = set()
+    for nodename, detail in esxi_nodes.items():
+        if len(detail.datastore_path) > 0:
+            active_esxi_nodes.add(nodename)
     return templates.TemplateResponse("create.html", {
         "title": "Create VM",
-        "request": request
+        "request": request,
+        "esxi_nodes": active_esxi_nodes
     })
 
 
