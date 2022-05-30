@@ -135,30 +135,31 @@ def api_update_vm_power(esxi_node_name: str, machine_id: int,
     return result
 
 
-# @dataclass
-# class CreateMachineRequest:
-#     """ Request schema for creating a virtual machine """
-#     name: str
-#     ram_mb: int
-#     cpu_cores: int
-#     storage_gb: int
-#     network_port_group: str
-#     esxi_nodename: str
-#     comment: str
-#     author: str
+@dataclass
+class CreateMachineRequest:
+    """ Request schema for creating a virtual machine """
+    name: str
+    ram_mb: int
+    cpu_cores: int
+    storage_gb: int
+    network_port_group: str
+    esxi_nodename: str
+    comment: str
 
 
-# @app.post("/v1/machine")
-# def api_create_vm(machine_req_req: CreateMachineRequest):
-#     # encode recieved request
-#     machine_req_req_enc = jsonable_encoder(machine_req_req)
-#     # validate and convert datamodel
-#     machine_req: CreateMachineSpec = validate_machine_req(
-#         machine_req=machine_req_req_enc)
+@app.post("/v1/machine")
+def api_create_vm(machine_req: CreateMachineRequest):
+    with xmlrpc.client.ServerProxy("http://localhost:8600/") as proxy:
+        result = proxy.create_vm(
+            machine_req.name,  # _name 'ecoman-example3'
+            machine_req.ram_mb,  # _ram_mb 512
+            machine_req.cpu_cores,  # _cpu_cores 1
+            machine_req.storage_gb,  # _storage_gb 30
+            machine_req.network_port_group,  # "private"
+            machine_req.esxi_nodename,  # _esxi_node_name "jasmine"
+            machine_req.comment
+        )
 
-#     # Create Virtual Machine
-#     result: CreateMchineResult = create_vm(
-#         machine_req=machine_req)
-#     if result.status == model.ProcessResult.NG:  # failed
-#         print("Fail to create VM:", result.message)
-#     return result
+    if result.get("result") == ProcessResult.NG:  # failed
+        raise HTTPException(status_code=503, detail=result.get("message"))
+    return result
