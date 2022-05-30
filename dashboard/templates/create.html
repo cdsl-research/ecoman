@@ -26,19 +26,19 @@
 
     <div class="form-group">
       <div class="col-3 col-sm-12">
-        <label class="form-label" for="cpu">Num of CPU</label>
+        <label class="form-label" for="cpu_cores">Num of CPU</label>
       </div>
       <div class="col-9 col-sm-12">
-        <input class="form-input" type="number" id="cpu" placeholder="1" min="1" max="4" value="1">
+        <input class="form-input" type="number" id="cpu_cores" placeholder="1" min="1" max="4" value="1">
       </div>
     </div>
 
     <div class="form-group">
       <div class="col-3 col-sm-12">
-        <label class="form-label" for="ram">Memory Size</label>
+        <label class="form-label" for="ram_mb">Memory Size</label>
       </div>
       <div class="col-9 col-sm-12">
-        <select id="ram" class="form-select">
+        <select id="ram_mb" class="form-select">
           <option value='512'>500MB</option>
           <option value='1024'>1GB</option>
           <option value='2048'>2GB</option>
@@ -49,10 +49,10 @@
 
     <div class="form-group">
       <div class="col-3 col-sm-12">
-        <label class="form-label" for="storage">Storage Size</label>
+        <label class="form-label" for="storage_gb">Storage Size</label>
       </div>
       <div class="col-9 col-sm-12">
-        <select id="storage" class="form-select">
+        <select id="storage_gb" class="form-select">
           <option value='30'>30GB</option>
           <option value='50'>50GB</option>
           <option value='70'>70GB</option>
@@ -63,10 +63,10 @@
 
     <div class="form-group">
       <div class="col-3 col-sm-12">
-        <label class="form-label" for="esxi_node">ESXi Node</label>
+        <label class="form-label" for="esxi_nodename">ESXi Node</label>
       </div>
       <div class="col-9 col-sm-12">
-        <select id="esxi_node" class="form-select">
+        <select id="esxi_nodename" class="form-select">
           {% for nodename in esxi_nodes %}
           <option value="{{ nodename }}">{{ nodename }}</option>
           {% endfor %}
@@ -127,16 +127,16 @@
   };
 
   const setSpec = (cpu, ram, storage) => {
-    document.getElementById("cpu").value = cpu;
-    document.getElementById("ram").value = ram;
-    document.getElementById("storage").value = storage;
+    document.getElementById("cpu_cores").value = cpu;
+    document.getElementById("ram_mb").value = ram;
+    document.getElementById("storage_gb").value = storage;
   };
 
   const createMachine = () => {
     setLoading(true);
 
     const url = '/v1/machine';
-    const params = ["name", "cpu", "ram", "storage", "esxi_node", "comment"];
+    const params = ["name", "cpu_cores", "ram_mb", "storage_gb", "esxi_nodename", "comment"];
     const payloads = {};
     params.forEach(param => {
       payloads[param] = document.getElementById(param).value;
@@ -152,7 +152,7 @@
     }).then(res => res.json())
       .then(response => {
         console.log('Success:', JSON.stringify(response));
-        setMsgbox('Success: ' + response['status'], true);
+        setMsgbox('Success: ' + response['message'], true);
         setLoading(false);
       })
       .catch(error => {
