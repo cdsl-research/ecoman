@@ -45,8 +45,8 @@ TBD
 Environment Variables:
 
 | Name                           | Default Value | Type    | Description | Component |
-| ---                            | ---           | ---     | ---         | crawler, dashboard |
-| MONGO_USERNAME                 |               | String  | If this value is empty, ECoMan connects to MongoDB without authentication. | crawler |
+| ---                            | ---           | ---     | ---         | --- |
+| MONGO_USERNAME                 |               | String  | If this value is empty, ECoMan connects to MongoDB without authentication. | crawler, dashboard |
 | MONGO_PASSWORD                 |               | String  |             | crawler, dashboard |
 | MONGO_DBNAME                   | ecoman        | String  |             | crawler, dashboard |
 | MONGO_HOST                     | 127.0.0.1     | String  |             | crawler, dashboard |
