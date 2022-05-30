@@ -1,10 +1,11 @@
+import datetime
 import os
+import sys
 import xmlrpc.client
 from dataclasses import dataclass
 from typing import Literal
-import sys
 
-from fastapi import FastAPI, Request, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
@@ -62,7 +63,12 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 @app.get("/", response_class=HTMLResponse)
 def page_top(request: Request):
     collection = db.get_collection("machines")
-    response = list(collection.find({}, {'_id': 0}))
+    cur_date = datetime.datetime.now()
+    response = list(collection.find({
+        "updated_at": {
+            "$gte": cur_date - datetime.timedelta(minutes=10)
+        }
+    }, {'_id': 0}))
     result = sorted(response, key=lambda x: (x['esxi_node_name'], x['id']))
     return templates.TemplateResponse("top.html", {
         "title": "Top",
