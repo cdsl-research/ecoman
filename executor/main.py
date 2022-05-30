@@ -51,6 +51,9 @@ class CreateMachineSpec:
     comment: str
 
 
+EXECUTOR_PORT = int(os.getenv("EXECUTOR_PORT", "8600"))
+print("EXECUTOR TARGET:", EXECUTOR_PORT)
+
 """ Init ssh connecter """
 client = paramiko.SSHClient()
 client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
@@ -255,8 +258,7 @@ def _validate_machine_req(
 
 if __name__ == "__main__":
     """ Init rpc server """
-    listen_port = int(os.getenv("EXECUTOR_PORT", "8600"))
-    server = SimpleXMLRPCServer(("0.0.0.0", listen_port))
+    server = SimpleXMLRPCServer(("0.0.0.0", EXECUTOR_PORT))
     print(f"Listening on port {listen_port} ...")
     server.register_function(set_vm_power, "set_vm_power")
     server.register_function(create_vm, "create_vm")

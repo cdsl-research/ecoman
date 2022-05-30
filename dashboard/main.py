@@ -36,7 +36,7 @@ class RequestUpdatePowerStatus:
     status: Literal["on", "off", "suspend", "shutdown", "reset", "reboot"]
 
 
-EXECUTOR_ADDRESS = os.getenv("EXECUTOR_ADDRESS", "localhost")
+EXECUTOR_ADDRESS = os.getenv("EXECUTOR_ADDRESS", "127.0.0.1")
 EXECUTOR_PORT = int(os.getenv("EXECUTOR_PORT", "8600"))
 print("EXECUTOR TARGET:", EXECUTOR_ADDRESS, EXECUTOR_PORT)
 
