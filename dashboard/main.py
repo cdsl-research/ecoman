@@ -30,13 +30,6 @@ class ProcessResult:
     NG: int = "ng"
 
 
-# @dataclass
-# class ResponseUpdatePowerStatus:
-#     result: ProcessResult
-#     request_status: PowerStatus
-#     message: str
-
-
 @dataclass
 class RequestUpdatePowerStatus:
     status: Literal["on", "off", "suspend", "shutdown", "reset", "reboot"]
@@ -142,7 +135,6 @@ class CreateMachineRequest:
     ram_mb: int
     cpu_cores: int
     storage_gb: int
-    network_port_group: str
     esxi_nodename: str
     comment: str
 
@@ -155,8 +147,7 @@ def api_create_vm(machine_req: CreateMachineRequest):
             machine_req.ram_mb,  # _ram_mb 512
             machine_req.cpu_cores,  # _cpu_cores 1
             machine_req.storage_gb,  # _storage_gb 30
-            machine_req.network_port_group,  # "private"
-            machine_req.esxi_nodename,  # _esxi_node_name "jasmine"
+            machine_req.esxi_nodename,  # "jasmine"
             machine_req.comment
         )
 

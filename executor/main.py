@@ -106,7 +106,6 @@ def create_vm(
     _ram_mb: int,  # 512
     _cpu_cores: int,  # 1
     _storage_gb: int,  # 30
-    _network_port_group: str,  # "private"
     _esxi_node_name: str,  # "jasmine"
     _comment: str
 ) -> ProcessResult:
@@ -117,13 +116,13 @@ def create_vm(
         ram_mb=_ram_mb,
         cpu_cores=_cpu_cores,
         storage_gb=_storage_gb,
-        network_port_group=_network_port_group,
         esxi_node_name=_esxi_node_name,
         comment=_comment
     )
 
     esxi_node_info = load_config.get_esxi_nodes().get(machine.esxi_node_name)
     assert esxi_node_info is not None, "Invalid esxi_node_name."
+    print("ESXi Node info:", esxi_node_info)
     datastore_path = esxi_node_info.datastore_path
     assert datastore_path.startswith("/"), "Invalid datastore path"
     datastore_machine_dir = os.path.join(datastore_path, machine.name)
@@ -193,7 +192,6 @@ def _validate_machine_req(
     ram_mb: int,  # 512
     cpu_cores: int,  # 1
     storage_gb: int,  # 30
-    network_port_group: str,  # "private"
     esxi_node_name: str,  # "jasmine"
     comment: str
 ) -> CreateMachineSpec:
@@ -225,19 +223,17 @@ def _validate_machine_req(
     else:
         storage_gb = 30
 
-    # Network
-    if network_port_group:
-        network_port_group: str = network_port_group
-    else:
-        network_port_group = "VM Network"
-
-    # ESXi Node
     conf = load_config.get_esxi_nodes()
     esxi_node_names = tuple(conf.keys())  # get ESXi Node List
+
+    # ESXi Node
     if esxi_node_name in esxi_node_names:
         esxi_node_name: str = esxi_node_name
     else:
         esxi_node_name: str = random.choice(esxi_node_names)
+
+    # Network
+    network_port_group: str = conf[esxi_node_name].network_port_group
 
     # Datastore Path, Installer ISO Path
     esxi_node_config: load_config.HostsConfig = conf[esxi_node_name]
