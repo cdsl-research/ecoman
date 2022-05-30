@@ -189,6 +189,8 @@ def crawl() -> List[MachineDetailForStore]:
                 print("Fail to parse as MachineDetailForStore:", e)
                 continue
 
+        client.close()
+
     # print(machines_info)
     return machines_info
 
