@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 import os
+import pathlib
 import sys
 from xmlrpc.server import SimpleXMLRPCServer
 
@@ -29,6 +30,25 @@ class ResponseUpdatePowerStatus:
     result: ProcessResult
     request_status: PowerStatus
     message: str
+
+
+@dataclass
+class ResponseCreateMachine:
+    result: ProcessResult
+    message: str
+
+
+@dataclass
+class CreateMachineSpec:
+    name: str
+    ram_mb: int
+    cpu_cores: int
+    storage_gb: int
+    network_port_group: str
+    esxi_node_name: str
+    datastore_path: pathlib.Path
+    installer_iso_path: pathlib.Path
+    comment: str
 
 
 """ Init ssh connecter """
@@ -81,81 +101,160 @@ def set_vm_power(esxi_node_name: str, vmid: int, power_state: PowerStatus) -> Re
     return response
 
 
-# def create_vm(
-#     name: str,  # 'ecoman-example3'
-#     ram_mb: int,  # 512
-#     cpu_cores: int,  # 1
-#     storage_gb: int,  # 30
-#     network_port_group: str,  # "private"
-#     store_path: pathlib.Path,  # "/vmfs/volumes/StoreNAS-Jasmine/"
-#     iso_path: pathlib.Path,  # "/vmfs/volumes/StoreNAS-Public/xxx.iso"
-#     esxi_nodename: str,  # "jasmine"
-#     comment: str
-# ) -> ProcessResult:
-#     """ VMを作成 """
+def create_vm(
+    _name: str,  # 'ecoman-example3'
+    _ram_mb: int,  # 512
+    _cpu_cores: int,  # 1
+    _storage_gb: int,  # 30
+    _network_port_group: str,  # "private"
+    _esxi_node_name: str,  # "jasmine"
+    _comment: str
+) -> ProcessResult:
+    """ Create a VM """
 
-#     hostinfo = load_config.get_esxi_nodes().get(esxi_nodename)
-#     client.connect(
-#         hostname=hostinfo.get('addr'),
-#         username=hostinfo.get('username'),
-#         password=hostinfo.get('password')
-#     )
+    machine: CreateMachineSpec = _validate_machine_req(
+        name=_name,
+        ram_mb=_ram_mb,
+        cpu_cores=_cpu_cores,
+        storage_gb=_storage_gb,
+        network_port_group=_network_port_group,
+        esxi_node_name=_esxi_node_name,
+        comment=_comment
+    )
 
-#     # dt_now = datetime.datetime.now()
-#     # CUR_DATE = dt_now.strftime('%Y-%m-%d %H:%M:%S')
+    esxi_node_info = load_config.get_esxi_nodes().get(machine.esxi_node_name)
+    assert esxi_node_info is not None, "Invalid esxi_node_name."
+    datastore_path = esxi_node_info.datastore_path
+    assert datastore_path.startswith("/"), "Invalid datastore path"
+    datastore_machine_dir = os.path.join(datastore_path, machine.name)
+    installer_iso_path = esxi_node_info.installer_iso_path
+    assert installer_iso_path.endswith(".iso"), "Invalid installer iso path"
 
-#     concat_payload = comment
-#     cmd = f"""
-#     vmid=`vim-cmd vmsvc/createdummyvm {name} {store_path}`
-#     cd {store_path}{name}
-#     sed -i -e '/^guestOS =/d' {name}.vmx
+    client.connect(
+        hostname=esxi_node_info.addr,
+        username=esxi_node_info.username,
+        key_filename=esxi_node_info.identity_file_path,
+        timeout=5.0
+    )
 
-#     cat << EOF >> {name}.vmx
-# guestOS = "ubuntu-64"
-# memsize = "{ram_mb}"
-# numvcpus = "{cpu_cores}"
-# ethernet0.addressType = "generated"
-# ethernet0.generatedAddressOffset = "0"
-# ethernet0.networkName = "{network_port_group}"
-# ethernet0.pciSlotNumber = "160"
-# ethernet0.present = "TRUE"
-# ethernet0.uptCompatibility = "TRUE"
-# ethernet0.virtualDev = "vmxnet3"
-# ethernet0.wakeOnPcktRcv = "TRUE"
-# powerType.powerOff = "default"
-# powerType.reset = "default"
-# powerType.suspend = "soft"
-# sata0.present = "TRUE"
-# sata0:0.deviceType = "cdrom-image"
-# sata0:0.fileName = "{iso_path}"
-# sata0:0.present = "TRUE"
-# annotation = "{concat_payload}"
-# EOF
+    cmd = f"""
+    vmid=`vim-cmd vmsvc/createdummyvm {machine.name} {datastore_path}`
+    cd {datastore_machine_dir}
+    sed -i -e '/^guestOS =/d' {machine.name}.vmx
 
-#     rm {name}-flat.vmdk  {name}.vmdk
-#     vmkfstools --createvirtualdisk {storage_gb}G -d thin {name}.vmdk
-#     vim-cmd vmsvc/reload $vmid
-#     vim-cmd vmsvc/power.on $vmid
-#     """
+    cat << EOF >> {machine.name}.vmx
+guestOS = "ubuntu-64"
+memsize = "{machine.ram_mb}"
+numvcpus = "{machine.cpu_cores}"
+ethernet0.addressType = "generated"
+ethernet0.generatedAddressOffset = "0"
+ethernet0.networkName = "{machine.network_port_group}"
+ethernet0.pciSlotNumber = "160"
+ethernet0.present = "TRUE"
+ethernet0.uptCompatibility = "TRUE"
+ethernet0.virtualDev = "vmxnet3"
+ethernet0.wakeOnPcktRcv = "TRUE"
+powerType.powerOff = "default"
+powerType.reset = "default"
+powerType.suspend = "soft"
+sata0.present = "TRUE"
+sata0:0.deviceType = "cdrom-image"
+sata0:0.fileName = "{installer_iso_path}"
+sata0:0.present = "TRUE"
+annotation = "{machine.comment}"
+EOF
 
-#     # print(cmd)
-#     _, stdout, stderr = client.exec_command(cmd)
-#     stdout_lines = stdout.readlines()
-#     stderr_lines = stderr.readlines()
-#     if len(stderr_lines) > 0:
-#         payload = ' '.join([line.strip() for line in stderr_lines])
-#         # slack_notify(f"[Error] {author} created {vm_name}. detail: {payload}")
-#         return {
-#             "result": payload
-#         }
-#         # return ProcessResult()
-#     else:
-#         payload = ' '.join([line.strip() for line in stdout_lines])
-#         # slack_notify(
-#         #     f"[Success] {author} created {vm_name}. detail: {payload}")
-#         return {
-#             "status": payload
-#         }
+    rm {machine.name}-flat.vmdk  {machine.name}.vmdk
+    vmkfstools --createvirtualdisk {machine.storage_gb}G -d thin {machine.name}.vmdk
+    vim-cmd vmsvc/reload $vmid
+    vim-cmd vmsvc/power.on $vmid
+    """
+    # print(cmd)
+
+    _, stdout, stderr = client.exec_command(cmd)
+    stdout_lines = stdout.readlines()
+    stderr_lines = stderr.readlines()
+    if len(stderr_lines) > 0:
+        # failed
+        result = ' '.join([line.strip() for line in stderr_lines])
+        response = ResponseCreateMachine(
+            result=ProcessResult.NG, message=result)
+    else:
+        # success
+        result = ' '.join([line.strip() for line in stdout_lines])
+        response = ResponseCreateMachine(
+            result=ProcessResult.OK, message=result)
+
+    return response
+
+
+def _validate_machine_req(
+    name: str,  # 'ecoman-example3'
+    ram_mb: int,  # 512
+    cpu_cores: int,  # 1
+    storage_gb: int,  # 30
+    network_port_group: str,  # "private"
+    esxi_node_name: str,  # "jasmine"
+    comment: str
+) -> CreateMachineSpec:
+    """ Validate a VM hardware spec """
+
+    # NAME
+    if name:
+        name: str = name.lower()
+    else:
+        import random
+        suffix = str(random.randint(0, 999)).zfill(3)
+        name = f"machine-{suffix}"
+
+    # RAM
+    if 512 <= ram_mb <= 8192:
+        ram_mb: int = ram_mb
+    else:
+        ram_mb = 512
+
+    # CPU
+    if 1 <= cpu_cores:
+        cpu_cores: int = cpu_cores
+    else:
+        cpu_cores = 1
+
+    # Storage
+    if 30 <= storage_gb <= 100:
+        storage_gb: int = storage_gb
+    else:
+        storage_gb = 30
+
+    # Network
+    if network_port_group:
+        network_port_group: str = network_port_group
+    else:
+        network_port_group = "VM Network"
+
+    # ESXi Node
+    conf = load_config.get_esxi_nodes()
+    esxi_node_names = tuple(conf.keys())  # get ESXi Node List
+    if esxi_node_name in esxi_node_names:
+        esxi_node_name: str = esxi_node_name
+    else:
+        esxi_node_name: str = random.choice(esxi_node_names)
+
+    # Datastore Path, Installer ISO Path
+    esxi_node_config: load_config.HostsConfig = conf[esxi_node_name]
+    datastore_path = esxi_node_config.datastore_path
+    installer_iso_path = esxi_node_config.installer_iso_path
+
+    return CreateMachineSpec(
+        name=name,
+        ram_mb=ram_mb,
+        cpu_cores=cpu_cores,
+        storage_gb=storage_gb,
+        network_port_group=network_port_group,
+        esxi_node_name=esxi_node_name,
+        datastore_path=datastore_path,
+        installer_iso_path=installer_iso_path,
+        comment=comment
+    )
 
 
 if __name__ == "__main__":
@@ -164,4 +263,5 @@ if __name__ == "__main__":
     server = SimpleXMLRPCServer(("0.0.0.0", listen_port))
     print(f"Listening on port {listen_port} ...")
     server.register_function(set_vm_power, "set_vm_power")
+    server.register_function(create_vm, "create_vm")
     server.serve_forever()
