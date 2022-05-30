@@ -117,15 +117,15 @@
 </style>
 
 <script>
-  setLoading = (is_display) => {
+  const setLoading = (is_display) => {
     if (is_display) {
       document.getElementById("commit").classList.add("loading");
     } else {
       document.getElementById("commit").classList.remove("loading");
     }
-  }
+  };
 
-  setMsgbox = (message, is_success) => {
+  const setMsgbox = (message, is_success) => {
     if (message) {
       document.getElementById("msgbox").style.display = "block";
       document.getElementById("status").innerHTML = message;
@@ -135,25 +135,22 @@
       document.getElementById("msgbox").style.display = "none";
       document.getElementById("status").innerHTML = "";
     }
-  }
+  };
 
-  setSpec = (cpu, ram, storage) => {
+  const setSpec = (cpu, ram, storage) => {
     document.getElementById("cpu").value = cpu;
     document.getElementById("ram").value = ram;
     document.getElementById("storage").value = storage;
-  }
+  };
 
-  createMachine = () => {
+  const createMachine = () => {
     setLoading(true);
 
     const url = '/v1/machine';
-    const params = ["name", "cpu", "ram", "storage", "network", "esxi_node", "tags", "comment"];
+    const params = ["name", "cpu", "ram", "storage", "network", "esxi_node", "comment"];
     const payloads = {};
     params.forEach(param => {
       payloads[param] = document.getElementById(param).value;
-    })
-    payloads['tags'] = payloads['tags'].split(",").map(item => {
-      return item.trim();
     });
     // console.log(payloads);
 
@@ -174,12 +171,12 @@
         setMsgbox("Fail: " + error, false);
         setLoading(false);
       });
-  }
+  };
 
-  let commitButton = document.getElementById('commit');
+  const commitButton = document.getElementById('commit');
   commitButton.addEventListener("click", createMachine, false);
 
-  let closeButton = document.getElementById('close');
+  const closeButton = document.getElementById('close');
   closeButton.addEventListener("click", () => {
     setMsgbox(false);
   }, false);
