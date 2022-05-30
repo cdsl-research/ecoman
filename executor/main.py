@@ -259,7 +259,7 @@ def _validate_machine_req(
 if __name__ == "__main__":
     """ Init rpc server """
     server = SimpleXMLRPCServer(("0.0.0.0", EXECUTOR_PORT))
-    print(f"Listening on port {listen_port} ...")
+    print(f"Listening on port {EXECUTOR_PORT} ...")
     server.register_function(set_vm_power, "set_vm_power")
     server.register_function(create_vm, "create_vm")
     server.serve_forever()
