@@ -74,9 +74,9 @@ def page_top(request: Request):
         "title": "Top",
         "machines": result,
         "threshold": {
-            "cpu": 5,
-            "ram_mb": 8192,
-            "storage_gb": 50,
+            "cpu": int(os.getenv("DASHBOARD_THRESHOLD_CPU", "5")),
+            "ram_mb": int(os.getenv("DASHBOARD_THRESHOLD_RAM_MB", "8192")),
+            "storage_gb": int(os.getenv("DASHBOARD_THRESHOLD_STORAGE_GB", "50")),
         },
         "request": request
     })
