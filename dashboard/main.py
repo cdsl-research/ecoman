@@ -103,7 +103,7 @@ def page_create_vm(request: Request):
     return templates.TemplateResponse("create.html", {
         "title": "Create VM",
         "request": request,
-        "esxi_nodes": esxi_nodes
+        "esxi_nodes": active_esxi_nodes
     })
 
 
