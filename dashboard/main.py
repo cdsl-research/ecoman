@@ -36,6 +36,10 @@ class RequestUpdatePowerStatus:
     status: Literal["on", "off", "suspend", "shutdown", "reset", "reboot"]
 
 
+EXECUTOR_ADDRESS = os.getenv("EXECUTOR_ADDRESS", "localhost")
+EXECUTOR_PORT = int(os.getenv("EXECUTOR_PORT", "8600"))
+print("EXECUTOR TARGET:", EXECUTOR_ADDRESS, EXECUTOR_PORT)
+
 MONGO_USERNAME = os.getenv("MONGO_USERNAME", "")
 MONGO_PASSWORD = os.getenv("MONGO_PASSWORD", "")
 MONGO_DBNAME = os.getenv("MONGO_DBNAME", "ecoman")
@@ -126,7 +130,8 @@ def page_read_vm_detail(esxi_node_name: str, machine_id: int, request: Request):
 def api_update_vm_power(esxi_node_name: str, machine_id: int,
                         power_status: RequestUpdatePowerStatus):
     power_state = jsonable_encoder(power_status)["status"]
-    with xmlrpc.client.ServerProxy("http://localhost:8600/") as proxy:
+    with xmlrpc.client.ServerProxy(
+            f"http://{EXECUTOR_ADDRESS}:{EXECUTOR_PORT}/") as proxy:
         result = proxy.set_vm_power(esxi_node_name, machine_id, power_state)
 
     if result.get("result") == ProcessResult.NG:
@@ -147,7 +152,8 @@ class CreateMachineRequest:
 
 @app.post("/v1/machine")
 def api_create_vm(machine_req: CreateMachineRequest):
-    with xmlrpc.client.ServerProxy("http://localhost:8600/") as proxy:
+    with xmlrpc.client.ServerProxy(
+            f"http://{EXECUTOR_ADDRESS}:{EXECUTOR_PORT}/") as proxy:
         result = proxy.create_vm(
             machine_req.name,  # _name 'ecoman-example3'
             machine_req.ram_mb,  # _ram_mb 512
