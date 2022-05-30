@@ -12,6 +12,7 @@ class HostsConfig:
     identity_file_path: pathlib.Path
     datastore_path: pathlib.Path
     installer_iso_path: pathlib.Path
+    network_port_group: str
 
 
 def get_esxi_nodes() -> dict[str, HostsConfig]:
