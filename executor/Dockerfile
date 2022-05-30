@@ -3,9 +3,7 @@ FROM python:3.9-slim-buster
 WORKDIR /work
 SHELL ["/bin/bash", "-c"]
 
-COPY requirements.txt *.py library/ /work/
-COPY templates/ /work/templates/
-COPY static/ /work/static/
+COPY main.py requirements.txt library/ /work/
 
 RUN apt update -y && apt install build-essential -y
 RUN pip install -r requirements.txt
