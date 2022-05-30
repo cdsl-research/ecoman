@@ -63,17 +63,6 @@
 
     <div class="form-group">
       <div class="col-3 col-sm-12">
-        <label class="form-label" for="network">Network</label>
-      </div>
-      <div class="col-9 col-sm-12">
-        <select id="network" class="form-select">
-          <option value='private'>Private</option>
-        </select>
-      </div>
-    </div>
-
-    <div class="form-group">
-      <div class="col-3 col-sm-12">
         <label class="form-label" for="esxi_node">ESXi Node</label>
       </div>
       <div class="col-9 col-sm-12">
@@ -147,7 +136,7 @@
     setLoading(true);
 
     const url = '/v1/machine';
-    const params = ["name", "cpu", "ram", "storage", "network", "esxi_node", "comment"];
+    const params = ["name", "cpu", "ram", "storage", "esxi_node", "comment"];
     const payloads = {};
     params.forEach(param => {
       payloads[param] = document.getElementById(param).value;
