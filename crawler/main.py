@@ -236,6 +236,8 @@ def main():
         c = crawl()
         register(machines_info=c)
         consumed = time.time() - start_at
+        if crawl_interval - consumed < 0:
+            consumed += crawl_interval
         print("waiting for next crawl:", consumed, "[sec]")
         time.sleep(crawl_interval - consumed)
 
