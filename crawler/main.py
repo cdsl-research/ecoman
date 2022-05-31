@@ -58,10 +58,10 @@ class MachineDetailForStore(MachineDetailWithOptions):
 
 
 def get_vm_detail(_client: paramiko.SSHClient, vmid: int) -> MachineDetail:
-    """ 個別VMの詳細を取得 """
+    """個別VMの詳細を取得"""
 
-    _, stdout, _ = _client.exec_command(f'vim-cmd vmsvc/get.summary {vmid}')
-    result = vim_cmd_parser.parser(stdout.read().decode().split('\n'))
+    _, stdout, _ = _client.exec_command(f"vim-cmd vmsvc/get.summary {vmid}")
+    result = vim_cmd_parser.parser(stdout.read().decode().split("\n"))
     runtime = result["vim.vm.Summary"]["runtime"]
     guest = result["vim.vm.Summary"]["guest"]
     config = result["vim.vm.Summary"]["config"]
@@ -98,35 +98,34 @@ def get_vm_detail(_client: paramiko.SSHClient, vmid: int) -> MachineDetail:
         overall_cpu_usage=quick_stats["overallCpuUsage"],
         guest_memory_usage=quick_stats["guestMemoryUsage"],
         uptime_seconds=quick_stats.get("uptimeSeconds", 0),
-        overall_status=result["vim.vm.Summary"]["overallStatus"]
+        overall_status=result["vim.vm.Summary"]["overallStatus"],
     )
     return vm_detail
 
 
 def get_vms_list(_client: paramiko.SSHClient) -> Dict[int, MachineDetailWithOptions]:
-    """ VMのリストを取得 """
+    """VMのリストを取得"""
 
     print("Start get_vms_list")
     # VM情報一覧の2行目～を取得(ラベルを除外)
-    _, stdout, stderr = _client.exec_command('vim-cmd vmsvc/getallvms')
+    _, stdout, stderr = _client.exec_command("vim-cmd vmsvc/getallvms")
     print("stderr:", stderr.read())
 
     vm_info: Dict[int, MachineDetailWithOptions] = {}
     for line in stdout.readlines():
         # 数字から始まる行
-        if re.match(r'^\d+', line):
+        if re.match(r"^\d+", line):
             try:
-                """ VMの詳細をクロール """
-                dat = line.strip('\n').split()
+                """VMの詳細をクロール"""
+                dat = line.strip("\n").split()
                 vmid = int(dat[0])
-                result: MachineDetail = get_vm_detail(
-                    _client=_client, vmid=vmid)
+                result: MachineDetail = get_vm_detail(_client=_client, vmid=vmid)
                 vm_info[vmid] = MachineDetailWithOptions(
                     **asdict(result),
                     id=vmid,
                     datastore=dat[2],
                     datastore_path=dat[3],
-                    comment=' '.join(dat[6:])
+                    comment=" ".join(dat[6:]),
                 )
 
                 # import json
@@ -162,15 +161,14 @@ def crawl() -> List[MachineDetailForStore]:
                 config.addr,
                 username=config.username,
                 key_filename=config.identity_file_path,
-                timeout=5.0
+                timeout=5.0,
             )
         except paramiko.ssh_exception.SSHException as e:
             print(e)
             continue
 
         # VM一覧を結合
-        vm_list: dict[int, MachineDetailWithOptions] = get_vms_list(
-            _client=client)
+        vm_list: dict[int, MachineDetailWithOptions] = get_vms_list(_client=client)
 
         for _, machine_detail in vm_list.items():
             try:
@@ -178,7 +176,7 @@ def crawl() -> List[MachineDetailForStore]:
                     **asdict(machine_detail),
                     esxi_node_name=esxi_nodename,
                     esxi_node_address=config.addr,
-                    updated_at=datetime.now()
+                    updated_at=datetime.now(),
                 )
                 machines_info.append(vm_info)
             except Exception as e:
@@ -206,17 +204,17 @@ def register(machines_info: List[MachineDetailForStore]):
     MONGO_CONNECTION_STRING = f"mongodb://{credential}{MONGO_HOST}/"
 
     client = MongoClient(MONGO_CONNECTION_STRING)
-    client.admin.command('ping')
+    client.admin.command("ping")
     db = client[MONGO_DBNAME]
     collection = db.get_collection("machines")
 
     bulk_replaces = [
-        UpdateOne({
-            'id': rec.id,
-            'esxi_node_name': rec.esxi_node_name
-        }, {
-            '$set': asdict(rec)
-        }, upsert=True) for rec in machines_info
+        UpdateOne(
+            {"id": rec.id, "esxi_node_name": rec.esxi_node_name},
+            {"$set": asdict(rec)},
+            upsert=True,
+        )
+        for rec in machines_info
     ]
     # print(records)
     collection.bulk_write(bulk_replaces)

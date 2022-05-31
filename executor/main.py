@@ -56,8 +56,10 @@ client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 client.load_system_host_keys()
 
 
-def set_vm_power(esxi_node_name: str, vmid: int, power_state: PowerStatus) -> ResponseUpdatePowerStatus:
-    """ 個別VMの電源を操作 """
+def set_vm_power(
+    esxi_node_name: str, vmid: int, power_state: PowerStatus
+) -> ResponseUpdatePowerStatus:
+    """個別VMの電源を操作"""
 
     esxi_node_info = load_config.get_esxi_nodes()[esxi_node_name]
     assert esxi_node_info is not None, "Invalid esxi_node_name."
@@ -66,35 +68,30 @@ def set_vm_power(esxi_node_name: str, vmid: int, power_state: PowerStatus) -> Re
         hostname=esxi_node_info.addr,
         username=esxi_node_info.username,
         key_filename=esxi_node_info.identity_file_path,
-        timeout=5.0
+        timeout=5.0,
     )
-    _, stdout, stderr = client.exec_command(
-        f'vim-cmd vmsvc/power.{power_state} {vmid}')
-    ''' stdout example:
+    _, stdout, stderr = client.exec_command(f"vim-cmd vmsvc/power.{power_state} {vmid}")
+    """ stdout example:
     ON) Powering on VM:
     SHUTDOWN) <empty>
     OFF) Powering off VM:
     RESET) Reset VM:
     REBOOT) <empty>
     SUSPEND) Suspending VM:
-    '''
-    result_err = stderr.read().decode().replace('\n', '')
-    result = stdout.read().decode().replace('\n', '')
+    """
+    result_err = stderr.read().decode().replace("\n", "")
+    result = stdout.read().decode().replace("\n", "")
 
     if len(result_err) > 0:
         print("Failed", "Err:", result_err)
         response = ResponseUpdatePowerStatus(
-            result=ProcessResult.NG,
-            request_status=power_state,
-            message=result_err
+            result=ProcessResult.NG, request_status=power_state, message=result_err
         )
     else:
         print("Success", "Result:", result)
         print("Err:", result_err)
         response = ResponseUpdatePowerStatus(
-            result=ProcessResult.OK,
-            request_status=power_state,
-            message=result
+            result=ProcessResult.OK, request_status=power_state, message=result
         )
 
     return response
@@ -106,9 +103,9 @@ def create_vm(
     _cpu_cores: int,  # 1
     _storage_gb: int,  # 30
     _esxi_node_name: str,  # "jasmine"
-    _comment: str
+    _comment: str,
 ) -> ProcessResult:
-    """ Create a VM """
+    """Create a VM"""
 
     machine: CreateMachineSpec = _validate_machine_req(
         name=_name,
@@ -116,7 +113,7 @@ def create_vm(
         cpu_cores=_cpu_cores,
         storage_gb=_storage_gb,
         esxi_node_name=_esxi_node_name,
-        comment=_comment
+        comment=_comment,
     )
 
     esxi_node_info = load_config.get_esxi_nodes().get(machine.esxi_node_name)
@@ -132,7 +129,7 @@ def create_vm(
         hostname=esxi_node_info.addr,
         username=esxi_node_info.username,
         key_filename=esxi_node_info.identity_file_path,
-        timeout=5.0
+        timeout=5.0,
     )
 
     cmd = f"""
@@ -174,14 +171,12 @@ EOF
     stderr_lines = stderr.readlines()
     if len(stderr_lines) > 0:
         # failed
-        result = ' '.join([line.strip() for line in stderr_lines])
-        response = ResponseCreateMachine(
-            result=ProcessResult.NG, message=result)
+        result = " ".join([line.strip() for line in stderr_lines])
+        response = ResponseCreateMachine(result=ProcessResult.NG, message=result)
     else:
         # success
-        result = ' '.join([line.strip() for line in stdout_lines])
-        response = ResponseCreateMachine(
-            result=ProcessResult.OK, message=result)
+        result = " ".join([line.strip() for line in stdout_lines])
+        response = ResponseCreateMachine(result=ProcessResult.OK, message=result)
 
     return response
 
@@ -192,15 +187,16 @@ def _validate_machine_req(
     cpu_cores: int,  # 1
     storage_gb: int,  # 30
     esxi_node_name: str,  # "jasmine"
-    comment: str
+    comment: str,
 ) -> CreateMachineSpec:
-    """ Validate a VM hardware spec """
+    """Validate a VM hardware spec"""
 
     # NAME
     if name:
         name: str = name.lower()
     else:
         import random
+
         suffix = str(random.randint(0, 999)).zfill(3)
         name = f"machine-{suffix}"
 
@@ -248,12 +244,12 @@ def _validate_machine_req(
         esxi_node_name=esxi_node_name,
         datastore_path=datastore_path,
         installer_iso_path=installer_iso_path,
-        comment=comment
+        comment=comment,
     )
 
 
 if __name__ == "__main__":
-    """ Init rpc server """
+    """Init rpc server"""
     server = SimpleXMLRPCServer(("0.0.0.0", EXECUTOR_PORT))
     print(f"Listening on port {EXECUTOR_PORT} ...")
     server.register_function(set_vm_power, "set_vm_power")
