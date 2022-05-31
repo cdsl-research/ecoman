@@ -3,7 +3,7 @@
 ECoMan is a tool for supporting virtual machine management on VMware ESXi.
 It provides administrators to view virtual machine lists with web user interface.
 
-<img src="demo.gif" width="600">
+<img src="demo.gif">
 
 ## Feature
 
