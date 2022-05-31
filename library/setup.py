@@ -17,8 +17,8 @@ setup(
     url="https://github.com/cdsl-research/ecoman",
     packages=find_packages("src"),
     package_dir={"": "src"},
-    py_modules=[splitext(basename(path))[0] for path in glob('src/*.py')],
+    py_modules=[splitext(basename(path))[0] for path in glob("src/*.py")],
     include_package_data=True,
     zip_safe=False,
-    install_requires=_requires_from_file('requirements.txt'),
+    install_requires=_requires_from_file("requirements.txt"),
 )
