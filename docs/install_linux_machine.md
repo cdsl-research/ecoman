@@ -1,5 +1,7 @@
 # Install to Linux Machine
 
+You have to read [Common Installation Steps](common.md) before reading this document.
+
 (1) Enable ssh on ESXi Node
 
 [How to Enable SSH on VMware ESXi | phoenixNAP KB](https://phoenixnap.com/kb/esxi-enable-ssh)
