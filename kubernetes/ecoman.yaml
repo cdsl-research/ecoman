@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: ecoman-container
-          image: tomoyk/ecoman:v1.0.8
+          image: cdsl-research/ecoman/ecoman:v1.0.8
           volumeMounts:
             # From file
             - name: secret-volume
@@ -23,13 +23,6 @@ spec:
           ports:
             - containerPort: 3301
           env:
-            # From literal
-            - name: SLACK_WEBHOOK
-              valueFrom:
-                secretKeyRef:
-                  name: ecoman-secret-vars
-                  key: slack-webhook
-                  optional: true
             - name: HOSTS_PATH
               value: /config/hosts.yaml
       volumes:
