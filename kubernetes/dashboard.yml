@@ -1,28 +1,28 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: dep-ecoman
+  name: ecoman-dashboard
 spec:
   replicas: 3
   selector:
     matchLabels:
-      app: ecoman
+      ecoman: dashboard
   template:
     metadata:
       labels:
-        app: ecoman
+        ecoman: dashboard
     spec:
       containers:
-        - name: ecoman-container
-          image: cdsl-research/ecoman/ecoman:v1.0.8
+        - name: ecoman-dashboard-container
+          image: cdsl-research/ecoman/dashboard:v2.0.0
           volumeMounts:
-            # From file
             - name: secret-volume
               mountPath: /config
               readOnly: true
           ports:
-            - containerPort: 3301
+            - containerPort: 8000
           env:
+            # WIP
             - name: HOSTS_PATH
               value: /config/hosts.yaml
       volumes:
@@ -33,20 +33,17 @@ spec:
             - key: hosts.yaml
               path: hosts.yaml
               mode: 0400
-      restartPolicy: Always
-      dnsPolicy: Default
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: svc-ecoman
+  name: ecoman-dashboard-svc
 spec:
   type: NodePort
   ports:
     - name: "http-port"
       protocol: "TCP"
-      port: 3301
-      targetPort: 3301
-      nodePort: 30888
+      port: 8000
+      targetPort: 8000
   selector:
-    app: ecoman
+    ecoman: dashboard
