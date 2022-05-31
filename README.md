@@ -3,7 +3,7 @@
 ECoMan is a tool for supporting virtual machine management on VMware ESXi.
 It provides administrators to view virtual machine lists with web user interface.
 
-<img src="demo.gif">
+<img src="assets/demo.gif">
 
 ## Feature
 
@@ -77,4 +77,4 @@ ECoMan has following system archtiecture.
 - `dashboard` provides Web UI to Administrators. When Administrator accesses `dashboard`, it fetches VMs info from MongoDB and returns to Administrator.
 - `executor` receives actions, "Create VM" or "Update VM's power", from `dashboard` and does the actions via SSH.
 
-<img src="architecture.png">
+<img src="assets/architecture.png">
