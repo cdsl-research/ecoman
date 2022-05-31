@@ -1,17 +1,16 @@
 import os
 import pathlib
 import re
+import time
 from dataclasses import asdict, dataclass
 from datetime import datetime
 from typing import Dict, List
-import time
 
+import load_config
 import paramiko
 from pymongo import MongoClient, UpdateOne
 
-import vim_cmd_parser  # noqa
-
-import load_config  # noqa
+import vim_cmd_parser
 
 
 class PowerStatus:

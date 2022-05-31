@@ -4,14 +4,13 @@ import xmlrpc.client
 from dataclasses import dataclass
 from typing import Literal
 
+import load_config  # noqa
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from pymongo import MongoClient
-
-import load_config  # noqa
 
 
 class PowerStatus:

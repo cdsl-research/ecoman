@@ -1,11 +1,10 @@
-from dataclasses import dataclass
 import os
 import pathlib
+from dataclasses import dataclass
 from xmlrpc.server import SimpleXMLRPCServer
 
-import paramiko
-
 import load_config
+import paramiko
 
 
 class PowerStatus:

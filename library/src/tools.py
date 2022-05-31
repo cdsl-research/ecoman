@@ -1,5 +1,6 @@
-import requests
 import json
+
+import requests
 
 
 def slack_notify(message: str, slack_webhook: str):

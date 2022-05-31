@@ -1,7 +1,7 @@
 from glob import glob
 from posixpath import basename, splitext
-from setuptools import setup
-from setuptools import find_packages
+
+from setuptools import find_packages, setup
 
 
 def _requires_from_file(filename):
