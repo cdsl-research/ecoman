@@ -1,12 +1,13 @@
 FROM python:3.9-slim-buster
 
-WORKDIR /work
 SHELL ["/bin/bash", "-c"]
 
-COPY main.py requirements.txt library/ /work/
-
 RUN apt update -y && apt install build-essential -y
+
+COPY library/ /work/library/
+COPY executor/ /work/executor/
+WORKDIR /work/executor/
 RUN pip install -r requirements.txt
 
-ENTRYPOINT ["uvicorn"]
-CMD ["main:app", "--host", "0.0.0.0"]
+ENTRYPOINT ["python"]
+CMD ["main.py"]
