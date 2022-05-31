@@ -42,15 +42,27 @@ TBD
 
 ## Optional Parameters
 
+Hosts config file `hosts.yml` for ESXi Nodes:
+
+```
+hoge:  # ESXi Node Name
+  addr: 'hoge.a910.tak-cslab.org'  # ESXi Node Address
+  username: 'root'  # ESXi Username
+  identity_file_path: "ssh/id_rsa"  # SSH Private Key File
+  datastore_path: '/vmfs/volumes/datastore1/'  # VM stored path on ESXi
+  installer_iso_path: "/vmfs/volumes/datastore1/os-images/ubuntu2004.iso"  # Installer ISO stored path
+  network_port_group: "Management Network"  # VM network port group
+```
+
 Environment Variables:
 
 | Name                           | Default Value | Type    | Description | Component |
-| ---                            | ---           | ---     | ---         | --- |
+| ---                            | ---           | ---     | ---         | ---       |
 | MONGO_USERNAME                 |               | String  | If this value is empty, ECoMan connects to MongoDB without authentication. | crawler, dashboard |
 | MONGO_PASSWORD                 |               | String  |             | crawler, dashboard |
 | MONGO_DBNAME                   | ecoman        | String  |             | crawler, dashboard |
 | MONGO_HOST                     | 127.0.0.1     | String  |             | crawler, dashboard |
-| CRAWLER_INTERVAL               | 60            | Integer |             | crawler |
+| CRAWLER_INTERVAL               | 60            | Integer |             | crawler   |
 | DASHBOARD_THRESHOLD_CPU        | 5             | Integer | CPU usage on VM lists is emphasized by this value. | dashboard |
 | DASHBOARD_THRESHOLD_RAM_MB     | 8192          | Integer | RAM usage on VM lists is emphasized by this value. | dashboard |
 | DASHBOARD_THRESHOLD_STORAGE_GB | 50            | Integer | Storage usage on VM lists is emphasized by this value. | dashboard |
