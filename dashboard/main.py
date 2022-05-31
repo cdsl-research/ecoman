@@ -4,7 +4,7 @@ import xmlrpc.client
 from dataclasses import dataclass
 from typing import Literal
 
-import load_config  # noqa
+import load_config
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import HTMLResponse
