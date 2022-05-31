@@ -6,11 +6,7 @@ from xmlrpc.server import SimpleXMLRPCServer
 
 import paramiko
 
-dir_this_file = os.path.dirname(__file__)
-parent_dir = os.path.join(dir_this_file, '..')
-sys.path.append(parent_dir)
-
-from library import load_config  # noqa
+import load_config
 
 
 class PowerStatus:
