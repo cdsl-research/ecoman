@@ -20,25 +20,12 @@ It provides administrators to view virtual machine lists with web user interface
     - PyMongo
 - MongoDB 5.0 or later
 
-## Getting Started
+## Installation
 
 ECoMan has several ways for running as below.
 
-- Linux Machine (General)
-- Docker Compose (Easy)
-- Kubernetes
-
-### Linux Machine
-
-TBD
-
-### Docker Compose
-
-TBD
-
-### Kubernetes
-
-TBD
+- [Linux Machine (General)](docs/install_linux_machine.md)
+- [Kubernetes](docs/install_kubernetes.md)
 
 ## Optional Parameters
 
