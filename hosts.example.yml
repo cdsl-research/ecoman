@@ -1,0 +1,7 @@
+hoge:
+  addr: 'hoge.a910.tak-cslab.org'
+  username: 'root'
+  identity_file_path: "ssh/id_rsa"
+  datastore_path: '/vmfs/volumes/datastore1/'
+  installer_iso_path: "/vmfs/volumes/datastore1/os-images/ubuntu2004.iso"
+  network_port_group: "Management Network"

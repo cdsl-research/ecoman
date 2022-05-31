@@ -1,0 +1,133 @@
+# This is an example command result for 'vim-cmd vmsvc/get.summary'
+
+{
+    "vim.vm.Summary": {
+        "vm": "vim.VirtualMachine:14",
+        "runtime": {
+            "device": {
+                "vim.vm.DeviceRuntimeInfo": {
+                    "runtimeState": {
+                        "vmDirectPathGen2Active": false,
+                        "vmDirectPathGen2InactiveReasonVm": null,
+                        "vmDirectPathGen2InactiveReasonOther": "vmNptIncompatibleNetwor",
+                        "vmDirectPathGen2InactiveReasonExtended": null,
+                        "reservationStatus": null,
+                        "attachmentStatus": "",
+                        "featureRequirement": null
+                    },
+                    "key": 4000
+                }
+            },
+            "host": "vim.HostSystem:ha-host",
+            "connectionState": "connected",
+            "powerState": "poweredOn",
+            "vmFailoverInProgress": false,
+            "faultToleranceState": "notConfigured",
+            "dasVmProtection": null,
+            "toolsInstallerMounted": false,
+            "suspendTime": null,
+            "bootTime": "2022-04-19T11:27:12Z",
+            "suspendInterval": 0,
+            "question": null,
+            "memoryOverhead": null,
+            "maxCpuUsage": 7785,
+            "maxMemoryUsage": 4096,
+            "numMksConnections": 0,
+            "recordReplayState": "inactive",
+            "cleanPowerOff": null,
+            "needSecondaryReason": null,
+            "onlineStandby": false,
+            "minRequiredEVCModeKey": null,
+            "consolidationNeeded": false,
+            "offlineFeatureRequirement": {
+                "vim.vm.FeatureRequirement": {
+                    "key": "cpuid.lm",
+                    "featureName": "cpuid.lm",
+                    "value": "Num:Min:1"
+                }
+            },
+            "featureRequirement": {
+                "vim.vm.FeatureRequirement": {
+                    "key": "misc.cpuidfaulting",
+                    "featureName": "misc.cpuidfaulting",
+                    "value": "Bool:Min:1"
+                }
+            },
+            "featureMask": null,
+            "vFlashCacheAllocation": null,
+            "paused": false,
+            "snapshotInBackground": false,
+            "quiescedForkParent": null,
+            "instantCloneFrozen": false,
+            "cryptoState": null,
+            "suspendedToMemory": null,
+            "crypto": null
+        },
+        "guest": {
+            "guestId": "ubuntu64Guest",
+            "guestFullName": "Ubuntu Linux (64-bit)",
+            "toolsStatus": "toolsOk",
+            "toolsVersionStatus": "guestToolsUnmanaged",
+            "toolsVersionStatus2": "guestToolsUnmanaged",
+            "toolsRunningStatus": "guestToolsRunning",
+            "hostName": "kazu-wn2",
+            "ipAddress": "192.168.100.236",
+            "hwVersion": "vmx-19"
+        },
+        "config": {
+            "name": "kazu-wn2",
+            "template": false,
+            "vmPathName": "[StoreNAS-Jasmine2] kazu-wn2/kazu-wn2.vmx",
+            "memorySizeMB": 4096,
+            "cpuReservation": 0,
+            "memoryReservation": 0,
+            "numCpu": 2,
+            "numEthernetCards": 1,
+            "numVirtualDisks": 1,
+            "uuid": "564d4e4f-e6c4-a829-4098-aa446a14bdbe",
+            "instanceUuid": "5226016c-312e-d76f-8d0a-2487026e8622",
+            "guestId": "ubuntu64Guest",
+            "guestFullName": "Ubuntu Linux (64-bit)",
+            "annotation": "",
+            "product": null,
+            "installBootRequired": null,
+            "ftInfo": null,
+            "managedBy": null,
+            "tpmPresent": false,
+            "numVmiopBackings": 0,
+            "hwVersion": "vmx-19"
+        },
+        "storage": {
+            "committed": 10684206203,
+            "uncommitted": 32350667280,
+            "unshared": 10684206203,
+            "timestamp": "2022-04-19T11:27:12.768213Z"
+        },
+        "quickStats": {
+            "overallCpuUsage": 170,
+            "overallCpuDemand": null,
+            "overallCpuReadiness": null,
+            "guestMemoryUsage": 491,
+            "hostMemoryUsage": 4138,
+            "guestHeartbeatStatus": "green",
+            "distributedCpuEntitlement": null,
+            "distributedMemoryEntitlement": null,
+            "staticCpuEntitlement": null,
+            "staticMemoryEntitlement": null,
+            "grantedMemory": 4096,
+            "privateMemory": null,
+            "sharedMemory": 0,
+            "swappedMemory": 0,
+            "balloonedMemory": 0,
+            "consumedOverheadMemory": 42,
+            "ftLogBandwidth": null,
+            "ftSecondaryLatency": null,
+            "ftLatencyStatus": null,
+            "compressedMemory": 0,
+            "uptimeSeconds": 3290727,
+            "ssdSwappedMemory": null
+        },
+        "overallStatus": "green",
+        "customValue": null
+    }
+}

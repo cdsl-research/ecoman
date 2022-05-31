@@ -1,0 +1,274 @@
+{% include "_header.html" %}
+
+<main>
+  <section>
+    <fieldset>
+      <a href="https://{{ machine.esxi_node_address }}/ui/#/host/vms/{{ machine.id }}" target="_blank">
+        <button class="btn btn-primary">ESXi Console</button>
+      </a>
+    </fieldset>
+    <fieldset>
+      <div class="btn-group btn-group-block">
+        <button class="btn btn-success power-action" name="on">Power ON</button>
+        <button class="btn btn-error power-action" name="shutdown">Shutdown</button>
+        <button class="btn power-action" name="suspend">Suspend</button>
+        <button class="btn power-action" name="reboot">Reboot</button>
+      </div>
+    </fieldset>
+  </section>
+
+  <section>
+    <div id="top-message-box" class="toast toast-primary">
+      <button id="close-top-message-box" class="btn btn-clear float-right"></button>
+      <p id="top-message"></p>
+    </div>
+  </section>
+
+  <section>
+    <ul class="tab">
+      <li class="tab-item">
+        <a href="#" name="machine-overview" class="menu-item active">Machine Overview</a>
+      </li>
+      <li class="tab-item">
+        <a href="#" name="hardware-spec" class="menu-item">Hardware Spec</a>
+      </li>
+      <li class="tab-item">
+        <a href="#" name="hardware-metrics" class="menu-item">Hardware Metrics</a>
+      </li>
+    </ul>
+  </section>
+
+  <section name="machine-overview" class="sub-page">
+    <table class="table">
+      <tr>
+        <td>VM Name</td>
+        <td><b>{{ machine.name }}</b></td>
+      </tr>
+      <tr>
+        <td>Power Status</td>
+        <td>{{ machine.power | upper }}</td>
+      </tr>
+      <tr>
+        <td>IP Address</td>
+        <td>
+          {{ machine.ip_address }} <br>
+
+          {% if machine.ip_address != "" %}
+          <details>
+            <summary>SSH Command</summary>
+            <code>ssh USERNAME@{{ machine.ip_address }}</code>
+          </details>
+          {% endif %}
+        </td>
+      </tr>
+      <tr>
+        <td>ESXi Node</td>
+        <td>{{ machine.esxi_node_name }} ({{ machine.esxi_node_address }})</td>
+      </tr>
+
+      <tr>
+        <td>VMware Tools Status</td>
+        <td>{{ machine.tools_status }}</td>
+      </tr>
+      <tr>
+        <td>VM Health Status</td>
+        <td>{{ machine.overall_status }}</td>
+      </tr>
+      <tr>
+        <td>BootTime</td>
+        <td>{{ machine.boot_time }}</td>
+      </tr>
+      <tr>
+        <td>Uptime</td>
+        <td>
+          {% if machine.uptime_seconds is none %}
+          -
+          {% else %}
+          {{ machine.uptime_seconds // 86400 }}d
+          {{ machine.uptime_seconds % 86400 // 3600}}h
+          {{ machine.uptime_seconds % 86400 % 3600 // 60 }}m
+          {% endif %}
+        </td>
+      </tr>
+    </table>
+  </section>
+
+  <section name="hardware-spec" class="sub-page invisible">
+    <table class="table">
+      <tr>
+        <td>CPU</td>
+        <td>{{ machine.num_cpu }} [Core]</td>
+      </tr>
+      <tr>
+        <td>RAM</td>
+        <td>{{ machine.memory_size_mb // 1000 }} [GB]</td>
+      </tr>
+      <tr>
+        <td>Storage</td>
+        <td>{{ machine.storage_commited // (1000 ** 3) }} [GB]</td>
+      </tr>
+      <tr>
+        <td>Num of Ethernet Cards</td>
+        <td>{{ machine.num_ethernet_cards }}</td>
+      </tr>
+      <tr>
+        <td>Num of Virtual Disks</td>
+        <td>{{ machine.num_virtual_disks }}</td>
+      </tr>
+      <tr>
+        <td>Guest OS Fullname</td>
+        <td>{{ machine.guest_fullname }}</td>
+      </tr>
+      <tr>
+        <td>Datastore</td>
+        <td>{{ machine.datastore }}</td>
+      </tr>
+      <tr>
+        <td>Datastore Path</td>
+        <td>{{ machine.datastore_path }}</td>
+      </tr>
+    </table>
+  </section>
+
+  <section name="hardware-metrics" class="sub-page invisible">
+    <table class="table">
+      {% if machine.guest_memory_usage is not none %}
+      <tr>
+        <td>RAM Usage</td>
+        <td>{{ machine.guest_memory_usage / machine.memory_size_mb * 100 // 1 }} [%]</td>
+      </tr>
+      {% endif %}
+      {% if machine.overall_cpu_usage is not none %}
+      <tr>
+        <td>CPU Usage</td>
+        <td>{{ machine.overall_cpu_usage / machine.num_cpu // 1 }} [%]</td>
+      </tr>
+      {% endif %}
+    </table>
+  </section>
+
+</main>
+
+<style>
+  main fieldset {
+    margin: 0 2rem 0 0;
+    display: inline-block;
+  }
+
+  main section {
+    margin: 2em 0;
+  }
+
+  main table th,
+  main table td {
+    vertical-align: top;
+  }
+
+  main .table {
+    max-width: 600px;
+  }
+
+  #top-message-box {
+    display: none;
+  }
+
+  .invisible {
+    display: none;
+  }
+</style>
+
+<script>
+  // Set power status
+  let setPower = (powerState) => {
+    const url = '/v1/machine/{{ machine.esxi_node_name }}/{{ machine.id }}/power';
+    const payload = { 'status': powerState };
+
+    fetch(url, {
+      method: 'PUT',
+      body: JSON.stringify(payload), // data can be `string` or {object}!
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    }).then(response => {
+      const topMessage = document.getElementById('top-message');
+
+      if (!response.ok) {
+        // error
+        response.json().then(function (result) {
+          console.log("Failed", result.detail);
+          topMessage.innerText = 'Failed: ' + result.detail;
+        });
+
+        const topMessageBox = document.getElementById("top-message-box");
+        topMessageBox.classList.add("toast-error");
+        topMessageBox.style.display = "block";
+      } else {
+        // success
+        response.json().then(function (result) {
+          console.log('Success:', result.request_status);
+          topMessage.innerText = 'Success: ' + result.request_status;
+        });
+
+        const topMessageBox = document.getElementById("top-message-box");
+        topMessageBox.classList.add("toast-success");
+        topMessageBox.style.display = "block";
+      }
+    })
+      .catch(error => {
+        console.error('Error:', error);
+        const topMessage = document.getElementById('top-message');
+        topMessage.innerText = error;
+
+        const topMessageBox = document.getElementById("top-message-box");
+        topMessageBox.classList.add("toast-error");
+        topMessageBox.style.display = "block";
+      });
+  };
+
+  // Press power action button
+  const powerActions = document.querySelectorAll('.power-action');
+  powerActions.forEach((target) => {
+    target.addEventListener("click", (e) => {
+      const powerStatus = e.target.name;
+      setPower(powerStatus);
+    })
+  });
+
+  // Close button on top message box
+  const closeTopMessage = document.getElementById("close-top-message-box");
+  closeTopMessage.addEventListener("click", () => {
+    const topMessageBox = document.getElementById("top-message-box");
+    topMessageBox.style.display = "none";
+  });
+
+  // Change navigation
+  const menuItems = document.querySelectorAll(".menu-item");
+  menuItems.forEach((target) => {
+    target.addEventListener("click", (e) => {
+      resetActiveItem();
+      e.target.classList.add("active");
+      changeSubPage(e.target);
+    })
+  });
+
+  // Change sub pages
+  const changeSubPage = (targetPage) => {
+    const subPages = document.querySelectorAll(".sub-page");
+    subPages.forEach((target) => {
+      if (targetPage.name === target.attributes.name.nodeValue) {
+        target.classList.remove("invisible");
+      } else {
+        target.classList.add("invisible");
+      }
+    })
+  };
+
+  // Reset navigation select
+  const resetActiveItem = () => {
+    menuItems.forEach((target) => {
+      target.classList.remove("active")
+    });
+  };
+</script>
+
+{% include "_footer.html" %}

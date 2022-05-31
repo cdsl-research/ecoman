@@ -1,0 +1,22 @@
+{% include "_header.html" %}
+
+<main>
+    <table class="table">
+        <tr>
+            <th>ESXi Node</th>
+            <th>Address</th>
+            <th>Datastore Path</th>
+            <th>Installer Path</th>
+        </tr>
+        {% for node_name, node in esxi_nodes.items() %}
+        <tr>
+            <td>{{ node_name }}</td>
+            <td>{{ node.addr }}</td>
+            <td>{{ node.datastore_path }}</td>
+            <td>{{ node.installer_iso_path }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+</main>
+
+{% include "_footer.html" %}
