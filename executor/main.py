@@ -1,7 +1,6 @@
 from dataclasses import dataclass
 import os
 import pathlib
-import sys
 from xmlrpc.server import SimpleXMLRPCServer
 
 import paramiko
