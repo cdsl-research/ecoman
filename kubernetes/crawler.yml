@@ -30,7 +30,7 @@ spec:
             - name: MONGO_HOST
               value: mongo-service
             - name: HOSTS_PATH
-              value: /config/hosts.yaml
+              value: /config/hosts.example.yaml
       volumes:
         - name: priv-key-volume
           secret:

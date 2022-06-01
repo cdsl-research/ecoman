@@ -34,7 +34,7 @@ spec:
             - name: EXECUTOR_ADDRESS
               value: executor-service
             - name: HOSTS_PATH
-              value: /config/hosts.yaml
+              value: /config/hosts.example.yaml
       volumes:
         - name: priv-key-volume
           secret:
