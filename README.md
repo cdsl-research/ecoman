@@ -45,6 +45,7 @@ Environment Variables:
 
 | Name                           | Default Value | Type    | Description | Component |
 | ---                            | ---           | ---     | ---         | ---       |
+| HOSTS_PATH                     | `$PROJECT_ROOT/hosts.yml` | String |  | crawler, dashboard, executor |
 | MONGO_USERNAME                 |               | String  | If this value is empty, ECoMan connects to MongoDB without authentication. | crawler, dashboard |
 | MONGO_PASSWORD                 |               | String  |             | crawler, dashboard |
 | MONGO_DBNAME                   | ecoman        | String  |             | crawler, dashboard |
