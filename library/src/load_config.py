@@ -24,6 +24,7 @@ def get_esxi_nodes() -> dict[str, HostsConfig]:
 
     if os.environ.get("HOSTS_PATH"):
         HOSTS_PATH = str(os.environ.get("HOSTS_PATH"))
+        parent_dir = os.path.dirname(HOSTS_PATH)
     else:
         dir_this_file = os.path.dirname(__file__)
         parent_dir = os.path.join(dir_this_file, "..")
@@ -37,6 +38,10 @@ def get_esxi_nodes() -> dict[str, HostsConfig]:
     for esxi_nodename, conf in hosts_config.items():
         print("Validating:", esxi_nodename)
         try:
+            _path = conf["datastore_path"].endswith("/")
+            if _path:
+                conf["datastore_path"] = conf["datastore_path"][:-2]
+
             hosts_conf = HostsConfig(**conf)
             hosts_conf.identity_file_path = os.path.join(
                 parent_dir, hosts_conf.identity_file_path
