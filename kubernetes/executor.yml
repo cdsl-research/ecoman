@@ -25,14 +25,6 @@ spec:
           ports:
             - containerPort: 8000
           env:
-            - name: MONGO_USER
-              value: mongo
-            - name: MONGO_PASSWORD
-              value: password
-            - name: MONGO_HOST
-              value: mongo-service
-            - name: EXECUTOR_ADDRESS
-              value: executor-service
             - name: HOSTS_PATH
               value: /config/hosts.yml
       volumes:
@@ -52,7 +44,6 @@ kind: Service
 metadata:
   name: executor-svc
 spec:
-  type: NodePort
   ports:
     - name: "http-port"
       protocol: "TCP"
