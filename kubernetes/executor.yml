@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: executor-container
-          image: cdsl-research/ecoman/executor:v2.0.0
+          image: ghcr.io/cdsl-research/ecoman/executor:master-9ae0608
           volumeMounts:
             - name: privkey-volume
               mountPath: /keys
@@ -34,9 +34,9 @@ spec:
             - name: EXECUTOR_ADDRESS
               value: executor-service
             - name: HOSTS_PATH
-              value: /config/hosts.example.yaml
+              value: /config/hosts.yaml
       volumes:
-        - name: priv-key-volume
+        - name: privkey-volume
           secret:
             secretName: priv-key
             items:

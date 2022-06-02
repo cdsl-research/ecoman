@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: crawler-container
-          image: cdsl-research/ecoman/crawler:v2.0.0
+          image: ghcr.io/cdsl-research/ecoman/crawler:master-9ae0608
           volumeMounts:
             - name: privkey-volume
               mountPath: /keys
@@ -30,9 +30,9 @@ spec:
             - name: MONGO_HOST
               value: mongo-service
             - name: HOSTS_PATH
-              value: /config/hosts.example.yaml
+              value: /config/hosts.yaml
       volumes:
-        - name: priv-key-volume
+        - name: privkey-volume
           secret:
             secretName: priv-key
             items:
