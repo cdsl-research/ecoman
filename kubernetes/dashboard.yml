@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: dashboard-container
-          image: cdsl-research/ecoman/dashboard:v2.0.0
+          image: ghcr.io/cdsl-research/ecoman/dashboard:master-9ae0608
           volumeMounts:
             - name: hosts-config-volume
               mountPath: /config
@@ -23,7 +23,7 @@ spec:
             - containerPort: 8000
           env:
             - name: MONGO_USER
-              value: mongo
+              value: root
             - name: MONGO_PASSWORD
               value: password
             - name: MONGO_HOST
@@ -31,7 +31,7 @@ spec:
             - name: EXECUTOR_ADDRESS
               value: executor-service
             - name: HOSTS_PATH
-              value: /config/hosts.example.yaml
+              value: /config/hosts.yml
       volumes:
         - name: hosts-config-volume
           configMap:
