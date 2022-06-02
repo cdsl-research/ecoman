@@ -23,7 +23,7 @@ spec:
             - containerPort: 8000
           env:
             - name: MONGO_USER
-              value: mongo
+              value: root
             - name: MONGO_PASSWORD
               value: password
             - name: MONGO_HOST
@@ -31,7 +31,7 @@ spec:
             - name: EXECUTOR_ADDRESS
               value: executor-service
             - name: HOSTS_PATH
-              value: /config/hosts.yaml
+              value: /config/hosts.yml
       volumes:
         - name: hosts-config-volume
           configMap:

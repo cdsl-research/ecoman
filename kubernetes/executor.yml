@@ -34,7 +34,7 @@ spec:
             - name: EXECUTOR_ADDRESS
               value: executor-service
             - name: HOSTS_PATH
-              value: /config/hosts.yaml
+              value: /config/hosts.yml
       volumes:
         - name: privkey-volume
           secret:
@@ -56,7 +56,7 @@ spec:
   ports:
     - name: "http-port"
       protocol: "TCP"
-      port: 8000
-      targetPort: 8000
+      port: 8600
+      targetPort: 8600
   selector:
     ecoman: executor
