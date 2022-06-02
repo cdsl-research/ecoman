@@ -22,8 +22,9 @@ spec:
           ports:
             - containerPort: 8000
           env:
-            - name: MONGO_USER
-              value: root
+            - name: MONGO_USERNAME
+              value: mongo
+            # You shoud use SECRET
             - name: MONGO_PASSWORD
               value: password
             - name: MONGO_HOST
@@ -48,5 +49,6 @@ spec:
       protocol: "TCP"
       port: 8000
       targetPort: 8000
+      nodePort: 32700
   selector:
     ecoman: dashboard

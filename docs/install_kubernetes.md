@@ -2,6 +2,10 @@
 
 You have to read [Common Installation Steps](common.md) before reading this document.
 
+```
+cd $PROJECT_ROOT/kubernetes
+```
+
 (1) Create a namespace
 
 ```
@@ -26,5 +30,5 @@ kubectl create configmap hosts-config --from-file=hosts.example.yml
 (4) Apply manifests
 
 ```
-kubectl apply -f ecoman.yml
+kubectl apply -f .
 ```
