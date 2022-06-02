@@ -1,0 +1,62 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: executor
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      ecoman: executor
+  template:
+    metadata:
+      labels:
+        ecoman: executor
+    spec:
+      containers:
+        - name: executor-container
+          image: cdsl-research/ecoman/executor:v2.0.0
+          volumeMounts:
+            - name: privkey-volume
+              mountPath: /keys
+              readOnly: true
+            - name: hosts-config-volume
+              mountPath: /config
+              readOnly: true
+          ports:
+            - containerPort: 8000
+          env:
+            - name: MONGO_USER
+              value: mongo
+            - name: MONGO_PASSWORD
+              value: password
+            - name: MONGO_HOST
+              value: mongo-service
+            - name: EXECUTOR_ADDRESS
+              value: executor-service
+            - name: HOSTS_PATH
+              value: /config/hosts.example.yaml
+      volumes:
+        - name: priv-key-volume
+          secret:
+            secretName: priv-key
+            items:
+              - key: id_rsa
+                path: id_rsa
+                mode: 0400
+        - name: hosts-config-volume
+          configMap:
+            name: hosts-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: executor-svc
+spec:
+  type: NodePort
+  ports:
+    - name: "http-port"
+      protocol: "TCP"
+      port: 8000
+      targetPort: 8000
+  selector:
+    ecoman: executor

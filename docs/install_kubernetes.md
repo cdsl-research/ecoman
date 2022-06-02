@@ -14,13 +14,13 @@ kubectl config set-context --current --namespace=ecoman
 Create a secret
 
 ```
-kubectl create secret generic ecoman-ssh-keyfile --from-file=ssh/id_rsa
+kubectl create secret generic priv-key --from-file=ssh/id_rsa
 ```
 
 (3) Create a ConfigMap for hosts.yml
 
 ```
-kubectl create configmap ecoman-hosts-yml --from-file=hosts.yml
+kubectl create configmap hosts-config --from-file=hosts.example.yml
 ```
 
 (4) Apply manifests
