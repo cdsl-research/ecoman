@@ -64,7 +64,7 @@ def page_top(request: Request):
     cur_date = datetime.datetime.now()
     response = list(
         collection.find(
-            {"updated_at": {"$gte": cur_date - datetime.timedelta(minutes=10)}},
+            {"updated_at": {"$gte": cur_date - datetime.timedelta(minutes=2)}},
             {"_id": 0},
         )
     )
