@@ -1,10 +1,8 @@
 name: Image Build
 
 on:
-  push:
-    branches:
-      - master
-
+  release:
+    types: [published]
 jobs:
   build-and-push:
     runs-on: ubuntu-20.04
@@ -13,12 +11,7 @@ jobs:
       packages: write
     strategy:
       matrix:
-        target:
-          [
-            "crawler",
-            "dashboard",
-            "executor",
-          ]
+        target: ["crawler", "dashboard", "executor"]
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
@@ -33,16 +26,10 @@ jobs:
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Set image tag for master
-        run: |
-          COMMITID=$(git rev-parse --short ${{ github.sha }} | cut -c1-7)
-          CUR_BRANCH=$(git symbolic-ref --short HEAD)
-          echo "DOCKER_TAG=${CUR_BRANCH}-${COMMITID}" >> $GITHUB_ENV
-
       - name: Build and push Docker image
         uses: docker/build-push-action@v2
         with:
           context: .
           file: ${{ matrix.target }}/Dockerfile
           push: true
-          tags: ghcr.io/cdsl-research/ecoman/${{ matrix.target }}:${{ env.DOCKER_TAG }}
+          tags: ghcr.io/cdsl-research/ecoman/${{ matrix.target }}:$GITHUB_REF_NAME
