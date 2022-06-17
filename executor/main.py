@@ -68,7 +68,8 @@ def set_vm_power(
         key_filename=esxi_node_info.identity_file_path,
         timeout=5.0,
     )
-    _, stdout, stderr = client.exec_command(f"vim-cmd vmsvc/power.{power_state} {vmid}")
+    _, stdout, stderr = client.exec_command(
+        f"vim-cmd vmsvc/power.{power_state} {vmid}")
     """ stdout example:
     ON) Powering on VM:
     SHUTDOWN) <empty>
@@ -83,8 +84,9 @@ def set_vm_power(
     if len(result_err) > 0:
         print("Failed", "Err:", result_err)
         response = ResponseUpdatePowerStatus(
-            result=ProcessResult.NG, request_status=power_state, message=result_err
-        )
+            result=ProcessResult.NG,
+            request_status=power_state,
+            message=result_err)
     else:
         print("Success", "Result:", result)
         print("Err:", result_err)
@@ -170,11 +172,13 @@ EOF
     if len(stderr_lines) > 0:
         # failed
         result = " ".join([line.strip() for line in stderr_lines])
-        response = ResponseCreateMachine(result=ProcessResult.NG, message=result)
+        response = ResponseCreateMachine(
+            result=ProcessResult.NG, message=result)
     else:
         # success
         result = " ".join([line.strip() for line in stdout_lines])
-        response = ResponseCreateMachine(result=ProcessResult.OK, message=result)
+        response = ResponseCreateMachine(
+            result=ProcessResult.OK, message=result)
 
     return response
 
