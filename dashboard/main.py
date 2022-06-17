@@ -107,7 +107,10 @@ def page_create_vm(request: Request):
 
 
 @app.get("/machine/{esxi_node_name}/{machine_id}", response_class=HTMLResponse)
-def page_read_vm_detail(esxi_node_name: str, machine_id: int, request: Request):
+def page_read_vm_detail(
+        esxi_node_name: str,
+        machine_id: int,
+        request: Request):
     collection = db.get_collection("machines")
     filter_ = {"esxi_node_name": esxi_node_name, "id": machine_id}
     machine = collection.find_one(filter_, {"_id": 0})
@@ -124,8 +127,9 @@ def page_read_vm_detail(esxi_node_name: str, machine_id: int, request: Request):
 
 @app.put("/v1/machine/{esxi_node_name}/{machine_id}/power")
 def api_update_vm_power(
-    esxi_node_name: str, machine_id: int, power_status: RequestUpdatePowerStatus
-):
+        esxi_node_name: str,
+        machine_id: int,
+        power_status: RequestUpdatePowerStatus):
     power_state = jsonable_encoder(power_status)["status"]
     with xmlrpc.client.ServerProxy(
         f"http://{EXECUTOR_ADDRESS}:{EXECUTOR_PORT}/"
