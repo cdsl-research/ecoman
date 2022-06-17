@@ -13,6 +13,7 @@
         <button class="btn btn-error power-action" name="shutdown">Shutdown</button>
         <button class="btn power-action" name="suspend">Suspend</button>
         <button class="btn power-action" name="reboot">Reboot</button>
+        <button class="btn power-action" name="off">Force Power OFF</button>
       </div>
     </fieldset>
   </section>
@@ -46,7 +47,15 @@
       </tr>
       <tr>
         <td>Power Status</td>
-        <td>{{ machine.power | upper }}</td>
+        <td>
+	  {% if machine.power | upper == "ON" %}
+	    <span class="label label-success">ON</span>
+	  {% elif machine.power | upper == "OFF" %}
+	    <span class="label label-error">OFF</span>
+          {% else %}
+            <span class="label label-warning">{{ machine.power | upper() }}</span>
+	  {% endif %}
+	</td>
       </tr>
       <tr>
         <td>IP Address</td>
@@ -68,11 +77,25 @@
 
       <tr>
         <td>VMware Tools Status</td>
-        <td>{{ machine.tools_status }}</td>
+	{% if machine.tools_status == "toolsOk" %}
+	  <td>&#x2705; OK</td>
+	{% elif machine.tools_status == "toolsNotRunning" %} 
+          <td>&#x274c; Not Running</td>
+        {% else %}
+          <td>{{ machine.tools_status }}</td>
+	{% endif %}
       </tr>
       <tr>
         <td>VM Health Status</td>
-        <td>{{ machine.overall_status }}</td>
+	{% if machine.overall_status == "green" %}
+          <td>&#x1f7e2; Green</td>
+	{% elif machine.overall_status == "yellow" %}
+          <td>&#x1f7e1; Yellow</td>
+	{% elif machine.overall_status == "red" %}
+          <td>&#x1f534; Red</td>
+	{% else %}
+          <td>&#x26ab; {{ machine.overall_status }}</td>
+	{% endif %}
       </tr>
       <tr>
         <td>BootTime</td>
@@ -178,97 +201,53 @@
 </style>
 
 <script>
-  // Set power status
-  let setPower = (powerState) => {
-    const url = '/v1/machine/{{ machine.esxi_node_name }}/{{ machine.id }}/power';
-    const payload = { 'status': powerState };
+// Set power status
+let setPower = (powerState) => {
+  const url = '/v1/machine/{{ machine.esxi_node_name }}/{{ machine.id }}/power';
+  const payload = { 'status': powerState };
 
-    fetch(url, {
-      method: 'PUT',
-      body: JSON.stringify(payload), // data can be `string` or {object}!
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    }).then(response => {
-      const topMessage = document.getElementById('top-message');
+  fetch(url, {
+    method: 'PUT',
+    body: JSON.stringify(payload), // data can be `string` or {object}!
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  }).then(response => {
+    const topMessage = document.getElementById('top-message');
 
-      if (!response.ok) {
-        // error
-        response.json().then(function (result) {
-          console.log("Failed", result.detail);
-          topMessage.innerText = 'Failed: ' + result.detail;
-        });
-
-        const topMessageBox = document.getElementById("top-message-box");
-        topMessageBox.classList.add("toast-error");
-        topMessageBox.style.display = "block";
-      } else {
-        // success
-        response.json().then(function (result) {
-          console.log('Success:', result.request_status);
-          topMessage.innerText = 'Success: ' + result.request_status;
-        });
-
-        const topMessageBox = document.getElementById("top-message-box");
-        topMessageBox.classList.add("toast-success");
-        topMessageBox.style.display = "block";
-      }
-    })
-      .catch(error => {
-        console.error('Error:', error);
-        const topMessage = document.getElementById('top-message');
-        topMessage.innerText = error;
-
-        const topMessageBox = document.getElementById("top-message-box");
-        topMessageBox.classList.add("toast-error");
-        topMessageBox.style.display = "block";
+    if (!response.ok) {
+      // error
+      response.json().then(function (result) {
+        console.log("Failed", result.detail);
+        topMessage.innerText = 'Failed: ' + result.detail;
       });
-  };
 
-  // Press power action button
-  const powerActions = document.querySelectorAll('.power-action');
-  powerActions.forEach((target) => {
-    target.addEventListener("click", (e) => {
-      const powerStatus = e.target.name;
-      setPower(powerStatus);
-    })
-  });
+      const topMessageBox = document.getElementById("top-message-box");
+      topMessageBox.classList.add("toast-error");
+      topMessageBox.style.display = "block";
+    } else {
+      // success
+      response.json().then(function (result) {
+        console.log('Success:', result.request_status);
+        topMessage.innerText = 'Success: ' + result.request_status;
+      });
 
-  // Close button on top message box
-  const closeTopMessage = document.getElementById("close-top-message-box");
-  closeTopMessage.addEventListener("click", () => {
+      const topMessageBox = document.getElementById("top-message-box");
+      topMessageBox.classList.add("toast-success");
+      topMessageBox.style.display = "block";
+    }
+  })
+  .catch(error => {
+    console.error('Error:', error);
+    const topMessage = document.getElementById('top-message');
+    topMessage.innerText = error;
+
     const topMessageBox = document.getElementById("top-message-box");
-    topMessageBox.style.display = "none";
+    topMessageBox.classList.add("toast-error");
+    topMessageBox.style.display = "block";
   });
-
-  // Change navigation
-  const menuItems = document.querySelectorAll(".menu-item");
-  menuItems.forEach((target) => {
-    target.addEventListener("click", (e) => {
-      resetActiveItem();
-      e.target.classList.add("active");
-      changeSubPage(e.target);
-    })
-  });
-
-  // Change sub pages
-  const changeSubPage = (targetPage) => {
-    const subPages = document.querySelectorAll(".sub-page");
-    subPages.forEach((target) => {
-      if (targetPage.name === target.attributes.name.nodeValue) {
-        target.classList.remove("invisible");
-      } else {
-        target.classList.add("invisible");
-      }
-    })
-  };
-
-  // Reset navigation select
-  const resetActiveItem = () => {
-    menuItems.forEach((target) => {
-      target.classList.remove("active")
-    });
-  };
+};
 </script>
+<script src="/static/detail.js"></script>
 
 {% include "_footer.html" %}
