@@ -8,9 +8,8 @@ from typing import Dict, List
 
 import load_config
 import paramiko
-from pymongo import MongoClient, UpdateOne
-
 import vim_cmd_parser
+from pymongo import MongoClient, UpdateOne
 
 
 class PowerStatus:
