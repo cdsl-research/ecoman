@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: executor-container
-          image: ghcr.io/cdsl-research/ecoman/executor:master-9ae0608
+          image: ghcr.io/cdsl-research/ecoman/executor:master-5d62fef
           volumeMounts:
             - name: privkey-volume
               mountPath: /keys

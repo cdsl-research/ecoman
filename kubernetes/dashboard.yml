@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: dashboard-container
-          image: ghcr.io/cdsl-research/ecoman/dashboard:master-9ae0608
+          image: ghcr.io/cdsl-research/ecoman/dashboard:master-5d62fef
           volumeMounts:
             - name: hosts-config-volume
               mountPath: /config

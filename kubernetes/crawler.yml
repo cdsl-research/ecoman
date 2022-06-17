@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: crawler-container
-          image: ghcr.io/cdsl-research/ecoman/crawler:master-2afa787
+          image: ghcr.io/cdsl-research/ecoman/crawler:master-5d62fef
           volumeMounts:
             - name: privkey-volume
               mountPath: /keys
