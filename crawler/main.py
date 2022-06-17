@@ -101,7 +101,8 @@ def get_vm_detail(_client: paramiko.SSHClient, vmid: int) -> MachineDetail:
     return vm_detail
 
 
-def get_vms_list(_client: paramiko.SSHClient) -> Dict[int, MachineDetailWithOptions]:
+def get_vms_list(
+        _client: paramiko.SSHClient) -> Dict[int, MachineDetailWithOptions]:
     """VMのリストを取得"""
 
     print("Start get_vms_list")
@@ -117,7 +118,8 @@ def get_vms_list(_client: paramiko.SSHClient) -> Dict[int, MachineDetailWithOpti
                 """VMの詳細をクロール"""
                 dat = line.strip("\n").split()
                 vmid = int(dat[0])
-                result: MachineDetail = get_vm_detail(_client=_client, vmid=vmid)
+                result: MachineDetail = get_vm_detail(
+                    _client=_client, vmid=vmid)
                 vm_info[vmid] = MachineDetailWithOptions(
                     **asdict(result),
                     id=vmid,
@@ -166,7 +168,8 @@ def crawl() -> List[MachineDetailForStore]:
             continue
 
         # VM一覧を結合
-        vm_list: dict[int, MachineDetailWithOptions] = get_vms_list(_client=client)
+        vm_list: dict[int, MachineDetailWithOptions] = get_vms_list(
+            _client=client)
 
         for _, machine_detail in vm_list.items():
             try:
