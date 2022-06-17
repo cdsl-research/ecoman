@@ -178,4 +178,54 @@
   }
 </style>
 
+<script>
+// Set power status
+let setPower = (powerState) => {
+  const url = '/v1/machine/{{ machine.esxi_node_name }}/{{ machine.id }}/power';
+  const payload = { 'status': powerState };
+
+  fetch(url, {
+    method: 'PUT',
+    body: JSON.stringify(payload), // data can be `string` or {object}!
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  }).then(response => {
+    const topMessage = document.getElementById('top-message');
+
+    if (!response.ok) {
+      // error
+      response.json().then(function (result) {
+        console.log("Failed", result.detail);
+        topMessage.innerText = 'Failed: ' + result.detail;
+      });
+
+      const topMessageBox = document.getElementById("top-message-box");
+      topMessageBox.classList.add("toast-error");
+      topMessageBox.style.display = "block";
+    } else {
+      // success
+      response.json().then(function (result) {
+        console.log('Success:', result.request_status);
+        topMessage.innerText = 'Success: ' + result.request_status;
+      });
+
+      const topMessageBox = document.getElementById("top-message-box");
+      topMessageBox.classList.add("toast-success");
+      topMessageBox.style.display = "block";
+    }
+  })
+  .catch(error => {
+    console.error('Error:', error);
+    const topMessage = document.getElementById('top-message');
+    topMessage.innerText = error;
+
+    const topMessageBox = document.getElementById("top-message-box");
+    topMessageBox.classList.add("toast-error");
+    topMessageBox.style.display = "block";
+  });
+};
+</script>
+<script src="/static/detail.js"></script>
+
 {% include "_footer.html" %}
