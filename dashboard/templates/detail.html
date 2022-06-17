@@ -47,7 +47,15 @@
       </tr>
       <tr>
         <td>Power Status</td>
-        <td>{{ machine.power | upper }}</td>
+        <td>
+	  {% if machine.power | upper == "ON" %}
+	    <span class="label label-success">ON</span>
+	  {% elif machine.power | upper == "OFF" %}
+	    <span class="label label-error">OFF</span>
+          {% else %}
+            <span class="label label-warning">{{ machine.power | upper() }}</span>
+	  {% endif %}
+	</td>
       </tr>
       <tr>
         <td>IP Address</td>
@@ -69,11 +77,25 @@
 
       <tr>
         <td>VMware Tools Status</td>
-        <td>{{ machine.tools_status }}</td>
+	{% if machine.tools_status == "toolsOk" %}
+	  <td>&#x2705; OK</td>
+	{% elif machine.tools_status == "toolsNotRunning" %} 
+          <td>&#x274c; Not Running</td>
+        {% else %}
+          <td>{{ machine.tools_status }}</td>
+	{% endif %}
       </tr>
       <tr>
         <td>VM Health Status</td>
-        <td>{{ machine.overall_status }}</td>
+	{% if machine.overall_status == "green" %}
+          <td>&#x1f7e2; Green</td>
+	{% elif machine.overall_status == "yellow" %}
+          <td>&#x1f7e1; Yellow</td>
+	{% elif machine.overall_status == "red" %}
+          <td>&#x1f534; Red</td>
+	{% else %}
+          <td>&#x26ab; {{ machine.overall_status }}</td>
+	{% endif %}
       </tr>
       <tr>
         <td>BootTime</td>
