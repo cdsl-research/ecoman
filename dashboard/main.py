@@ -103,23 +103,28 @@ def page_esxi_nodes(request: Request):
                     "esxi_node_name": "$esxi_node_name",
                     "power": "$power",
                 },
-                "count": {"$sum": 1}
+                "count": {"$sum": 1},
             }
-        }
+        },
     ]
     response = collection.aggregate(pipeline)
-    power_stat_esxi = {x['_id']['esxi_node_name']+"/"+x['_id']['power']: x['count'] for x in list(response)}
+    power_stat_esxi = {
+        x["_id"]["esxi_node_name"] + "/" + x["_id"]["power"]: x["count"]
+        for x in list(response)
+    }
 
     for node_name, node in esxi_nodes.items():
-        nodes_info.append({
-            "name": node_name,
-            "addr": node.addr,
-            "datastore_path": node.datastore_path,
-            "installer_iso_path": node.installer_iso_path,
-            "power_on": power_stat_esxi.get(node_name+"/on", 0),
-            "suspend": power_stat_esxi.get(node_name+"/suspend", 0),
-            "power_off": power_stat_esxi.get(node_name+"/off", 0),
-        })
+        nodes_info.append(
+            {
+                "name": node_name,
+                "addr": node.addr,
+                "datastore_path": node.datastore_path,
+                "installer_iso_path": node.installer_iso_path,
+                "power_on": power_stat_esxi.get(node_name + "/on", 0),
+                "suspend": power_stat_esxi.get(node_name + "/suspend", 0),
+                "power_off": power_stat_esxi.get(node_name + "/off", 0),
+            }
+        )
 
     return templates.TemplateResponse(
         "node.html",
