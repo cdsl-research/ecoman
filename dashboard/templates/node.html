@@ -5,13 +5,19 @@
         <tr>
             <th>ESXi Node</th>
             <th>Address</th>
+	    <th>Power ON</th>
+	    <th>Suspend</th>
+	    <th>Power OFF</th>
             <th>Datastore Path</th>
             <th>Installer Path</th>
         </tr>
-        {% for node_name, node in esxi_nodes.items() %}
+        {% for node in esxi_nodes %}
         <tr>
-            <td>{{ node_name }}</td>
+            <td>{{ node.name }}</td>
             <td>{{ node.addr }}</td>
+	    <td>{{ node.power_on }} [VM]</td>
+	    <td>{{ node.suspend }} [VM]</td>
+	    <td>{{ node.power_off }} [VM]</td>
             <td>{{ node.datastore_path }}</td>
             <td>{{ node.installer_iso_path }}</td>
         </tr>
