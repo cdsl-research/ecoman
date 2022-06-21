@@ -87,9 +87,48 @@ def page_top(request: Request):
 @app.get("/nodes", response_class=HTMLResponse)
 def page_esxi_nodes(request: Request):
     esxi_nodes = load_config.get_esxi_nodes()
+    nodes_info = []
+
+    collection = db.get_collection("machines")
+    cur_date = datetime.datetime.now()
+    pipeline = [
+        {
+            "$match": {
+                "updated_at": {"$gte": cur_date - datetime.timedelta(minutes=2)},
+            }
+        },
+        {
+            "$group": {
+                "_id": {
+                    "esxi_node_name": "$esxi_node_name",
+                    "power": "$power",
+                },
+                "count": {"$sum": 1},
+            }
+        },
+    ]
+    response = collection.aggregate(pipeline)
+    power_stat_esxi = {
+        x["_id"]["esxi_node_name"] + "/" + x["_id"]["power"]: x["count"]
+        for x in list(response)
+    }
+
+    for node_name, node in esxi_nodes.items():
+        nodes_info.append(
+            {
+                "name": node_name,
+                "addr": node.addr,
+                "datastore_path": node.datastore_path,
+                "installer_iso_path": node.installer_iso_path,
+                "power_on": power_stat_esxi.get(node_name + "/on", 0),
+                "suspend": power_stat_esxi.get(node_name + "/suspend", 0),
+                "power_off": power_stat_esxi.get(node_name + "/off", 0),
+            }
+        )
+
     return templates.TemplateResponse(
         "node.html",
-        {"title": "ESXi Nodes", "request": request, "esxi_nodes": esxi_nodes},
+        {"title": "ESXi Nodes", "request": request, "esxi_nodes": nodes_info},
     )
 
 
