@@ -4,7 +4,7 @@
   <section>
     <fieldset>
       <a href="https://{{ machine.esxi_node_address }}/ui/#/host/vms/{{ machine.id }}" target="_blank">
-        <button class="btn btn-primary">ESXi Console</button>
+        <button class="btn btn-primary">ESXi Console &#x2197;</button>
       </a>
     </fieldset>
     <fieldset>
@@ -44,6 +44,10 @@
       <tr>
         <td>VM Name</td>
         <td><b>{{ machine.name }}</b></td>
+      </tr>
+      <tr>
+	<td>Comment</td>
+	<td>{{ machine.comment }}</td>
       </tr>
       <tr>
         <td>Power Status</td>
@@ -179,7 +183,7 @@
   }
 
   main section {
-    margin: 2em 0;
+    margin: 0rem 0 1rem;
   }
 
   main table th,
