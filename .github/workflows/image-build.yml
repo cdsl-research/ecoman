@@ -32,4 +32,4 @@ jobs:
           context: .
           file: ${{ matrix.target }}/Dockerfile
           push: true
-          tags: ghcr.io/cdsl-research/ecoman/${{ matrix.target }}:${{ env.GITHUB_REF_NAME }}
+          tags: ghcr.io/cdsl-research/ecoman/${{ matrix.target }}:${{ github.ref_name }}
