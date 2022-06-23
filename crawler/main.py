@@ -162,7 +162,7 @@ def crawl() -> List[MachineDetailForStore]:
                 key_filename=config.identity_file_path,
                 timeout=5.0,
             )
-        except Exception as e:
+        except paramiko.ssh_exception.SSHException as e:
             print(e)
             continue
 
