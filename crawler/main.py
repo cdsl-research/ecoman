@@ -4,16 +4,15 @@ import re
 import time
 from dataclasses import asdict, dataclass
 from datetime import datetime
+from logging import INFO, basicConfig, getLogger
 from typing import Dict, List
-from logging import basicConfig, getLogger, INFO
 
 import load_config
 import paramiko
 import vim_cmd_parser
 from pymongo import MongoClient, UpdateOne
 
-
-FORMAT = '%(asctime)s \t %(message)s'
+FORMAT = "%(asctime)s \t %(message)s"
 basicConfig(format=FORMAT, level=INFO)
 logger = getLogger(__name__)
 
@@ -115,7 +114,7 @@ def get_vms_list(
     _, stdout, stderr = _client.exec_command("vim-cmd vmsvc/getallvms")
     stderr_ = stderr.read()
     if len(stderr_) > 0:
-        logger.info("stderr: " + stderr_.decode('utf-8'))
+        logger.info("stderr: " + stderr_.decode("utf-8"))
 
     vm_info: Dict[int, MachineDetailWithOptions] = {}
     for line in stdout.readlines():
