@@ -5,11 +5,17 @@ import time
 from dataclasses import asdict, dataclass
 from datetime import datetime
 from typing import Dict, List
+from logging import basicConfig, getLogger, INFO
 
 import load_config
 import paramiko
 import vim_cmd_parser
 from pymongo import MongoClient, UpdateOne
+
+
+FORMAT = '%(asctime)s \t %(message)s'
+basicConfig(format=FORMAT, level=INFO)
+logger = getLogger(__name__)
 
 
 class PowerStatus:
@@ -104,10 +110,12 @@ def get_vms_list(
         _client: paramiko.SSHClient) -> Dict[int, MachineDetailWithOptions]:
     """VMのリストを取得"""
 
-    print("Start get_vms_list")
+    logger.info("++++++ Start get_vms_list ++++++")
     # VM情報一覧の2行目～を取得(ラベルを除外)
     _, stdout, stderr = _client.exec_command("vim-cmd vmsvc/getallvms")
-    print("stderr:", stderr.read())
+    stderr_ = stderr.read()
+    if len(stderr_) > 0:
+        logger.info("stderr: " + stderr_.decode('utf-8'))
 
     vm_info: Dict[int, MachineDetailWithOptions] = {}
     for line in stdout.readlines():
@@ -131,8 +139,8 @@ def get_vms_list(
                 # print(json.dumps(result, indent=4))
 
             except Exception as e:
-                print("Fail to create MachineDetailSpec: dat=", dat)
-                print("Exception: ", e)
+                logger.info("Fail to create MachineDetailSpec: dat=" + dat)
+                logger.info(e)
                 continue
 
         # Vmidから始まる行
@@ -143,7 +151,7 @@ def get_vms_list(
 
 
 def crawl() -> List[MachineDetailForStore]:
-    print("Start crawling")
+    logger.info("++++++ Start crawling ++++++")
 
     """ Init ssh connecter """
     client = paramiko.SSHClient()
@@ -154,7 +162,7 @@ def crawl() -> List[MachineDetailForStore]:
     machines_info: List[MachineDetailForStore] = []
     nodes_conf = load_config.get_esxi_nodes()
     for esxi_nodename, config in nodes_conf.items():
-        print("+++ Connect to", esxi_nodename, "+++")
+        logger.info("+++ Connect to " + esxi_nodename + " +++")
         try:
             client.connect(
                 config.addr,
@@ -163,7 +171,7 @@ def crawl() -> List[MachineDetailForStore]:
                 timeout=5.0,
             )
         except Exception as e:
-            print(e)
+            logger.info("Connect error" + str(e))
             continue
 
         # VM一覧を結合
@@ -180,7 +188,8 @@ def crawl() -> List[MachineDetailForStore]:
                 )
                 machines_info.append(vm_info)
             except Exception as e:
-                print("Fail to parse as MachineDetailForStore:", e)
+                logger.info("Fail to parse as MachineDetailForStore:")
+                logger.info(e)
                 continue
 
         client.close()
@@ -221,9 +230,9 @@ def register(machines_info: List[MachineDetailForStore]):
 
 
 def main():
-    print("Starting crawler loop")
+    logger.info("Starting crawler loop")
     crawl_interval = int(os.getenv("CRAWLER_INTERVAL", "60"))
-    print("Crawl interval =", crawl_interval, "[sec]")
+    logger.info("Crawl interval =" + str(crawl_interval) + "[sec]")
 
     while True:
         start_at = time.time()
@@ -232,7 +241,7 @@ def main():
         consumed = time.time() - start_at
         if crawl_interval - consumed < 0:
             consumed += crawl_interval
-        print("waiting for next crawl:", consumed, "[sec]")
+        logger.info("Waiting for next crawl: " + str(consumed) + " [sec]")
         time.sleep(crawl_interval - consumed)
 
 
