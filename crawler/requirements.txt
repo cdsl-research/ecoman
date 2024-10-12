@@ -1,4 +1,4 @@
 paramiko==2.11.0
-pymongo==4.1.1
+pymongo==4.6.3
 
 ../library/
